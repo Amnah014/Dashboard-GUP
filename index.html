@@ -654,9 +654,9 @@ async function loadData(){
 
     // ── 3. Gabungkan: lokalData + pengajuan sheet (tanpa duplikat) + database sheet ──
     // Buat key set dari localData agar tidak duplikat dengan fromPengajuan
-    // const localKeys = new Set(
-    //   localData.map(d => `${d.tanggal}|${d.nominal}|${(d.kodeItem||'').trim()}`)
-    // );
+    const localKeys = new Set(
+      localData.map(d => `${d.tanggal}|${d.nominal}|${(d.kodeItem||'').trim()}`)
+    );
     const fromPengajuanUniq = fromPengajuan.filter(r => {
        const k = `${r.tanggal}|${r.nominal}|${(r.kodeItem||'').trim()}`;
        return !localKeys.has(k);

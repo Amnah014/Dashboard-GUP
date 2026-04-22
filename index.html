@@ -654,36 +654,19 @@ async function loadData(){
 
     // ── 3. Gabungkan: lokalData + pengajuan sheet (tanpa duplikat) + database sheet ──
     // Buat key set dari localData agar tidak duplikat dengan fromPengajuan
-    const combined = [...localData, ...fromPengajuan];
-
-// hapus duplikat
-// hapus duplikat
-const uniqueMap = new Map();
-
-combined.forEach(r => {
-  // PERBAIKAN: Hapus r.tanggal dari key dan tambahkan r.penerima & r.bulan
-  const key = [
-    (r.bulan || '').trim().toLowerCase(),
-    (r.penerima || '').trim().toLowerCase(),
-    r.nominal,
-    (r.kodeItem || '').trim(),
-    (r.uraian || '').trim().toLowerCase()
-  ].join('|');
-
-  if (!uniqueMap.has(key)) {
-    uniqueMap.set(key, r);
-  }
-});
-
-const dataTransaksi = Array.from(uniqueMap.values());
+    const localKeys = new Set(
+      localData.map(d => `${d.tanggal}|${d.nominal}|${(d.kodeItem||'').trim()}`)
+    );
+    const fromPengajuanUniq = fromPengajuan.filter(r => {
+      const k = `${r.tanggal}|${r.nominal}|${(r.kodeItem||'').trim()}`;
+      return !localKeys.has(k);
+    });
 
     allData = [
-  ...dataTransaksi.map(d => ({
-    ...d,
-    sumber: d.sumber || 'gabungan'
-  })),
-  ...fromSheet
-];
+      ...localData.map(d=>({...d, sumber:'local'})),
+      ...fromPengajuanUniq,
+      ...fromSheet,
+    ];
 
     applyFilter();
     hideOv();
@@ -805,11 +788,6 @@ function renderStats(bulan, program){
   document.getElementById('valRealisasi').textContent = fmtRp(totalRealisasi);
   document.getElementById('valGupBulan').textContent  = fmtRp(gupBulanIni);
   document.getElementById('valSisa').textContent      = fmtRp(sisa);
-
-  const lblBulanIni = document.querySelectorAll('.s-lbl')[2];
-  if (lblBulanIni) {
-      lblBulanIni.textContent = `GUP ${targetBulanNama}`;
-  }
 }
   
 

@@ -778,7 +778,11 @@ function renderStats(bulan, program){
   // GUP Bulan Ini = bulan kalender sekarang (bukan filter)
   const nowBulanNama = BULAN_NAMES[new Date().getMonth()];
   const gupBulanIni  = semuaTrx
-    .filter(r => (r.bulan||'').trim() === nowBulanNama)
+  .filter(r => {
+      const bulanData = String(r.bulan || '').trim().toLowerCase();
+      const bulanNow  = nowBulanNama.toLowerCase();
+      return bulanData === bulanNow;
+  })
     .reduce((s,r) => s + (r.neto || r.nominal || 0), 0);
 
   // Sisa Anggaran

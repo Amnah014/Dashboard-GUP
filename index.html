@@ -910,7 +910,8 @@ function renderCharts(){
    RINCIAN TABLE — dokumen bisa diklik jika berupa URL
    ============================================================ */
 function renderTable(){
-  const total = filteredData.length;
+  const localOnly = filteredData.filter(r => r.sumber === 'local');
+  const total = localOnly.length;
   const pages = Math.max(1, Math.ceil(total / PER_PAGE));
   const start = (currentPage - 1) * PER_PAGE;
   const slice = filteredData.slice(start, start + PER_PAGE);

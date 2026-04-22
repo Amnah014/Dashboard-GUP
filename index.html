@@ -527,7 +527,7 @@ let currentPage  = 1;
 const PER_PAGE   = 10;
 let cGUP=null, cPagu=null;
 let uploadedFiles = [];
-let  = JSON.parse(localStorage.getItem('gupLocal')||'[]');
+let  localData = JSON.parse(localStorage.getItem('gupLocal')||'[]');
 let nextId = localData.length ? Math.max(...localData.map(d=>d.id),0)+1 : 1;
 
 /* ============================================================
@@ -657,10 +657,10 @@ async function loadData(){
     // const localKeys = new Set(
     //   localData.map(d => `${d.tanggal}|${d.nominal}|${(d.kodeItem||'').trim()}`)
     // );
-    // const fromPengajuanUniq = fromPengajuan.filter(r => {
-    //   const k = `${r.tanggal}|${r.nominal}|${(r.kodeItem||'').trim()}`;
-    //   return !localKeys.has(k);
-    // });
+    const fromPengajuanUniq = fromPengajuan.filter(r => {
+       const k = `${r.tanggal}|${r.nominal}|${(r.kodeItem||'').trim()}`;
+       return !localKeys.has(k);
+     });
 
     allData = [
       ...localData.map(d=>({...d, sumber:'local'})),
@@ -786,7 +786,7 @@ function renderStats(bulan, program){
   const elLabel = document.getElementById('lblGupBulan');
   if(elLabel) elLabel.textContent = `GUP ${targetBulan}`;
 
-  const gupBulanIni = trx
+  const gupBulanIni = semuaTrx
     .filter(r => (r.bulan||'').trim() === targetBulan)
     .reduce((s,r) => s + (r.neto || r.nominal || 0), 0);
 

@@ -801,7 +801,8 @@ function renderAkunList(){
   const map = {};
   filteredData.forEach(r => {
     const k    = r.kodeAkun || '–';
-    const nilai = r.neto || r.nominal || 0;
+    const nilai = r.nominal || 0;
+    //const nilai = r.neto || r.nominal || 0;
     if(nilai > 0) map[k] = (map[k]||0) + nilai;
   });
 
@@ -836,7 +837,8 @@ function renderCharts(){
   const monthly = Array(12).fill(0);
   transaksi.forEach(r => {
     const idx = BULAN_NAMES.indexOf((r.bulan||'').trim());
-    if(idx >= 0) monthly[idx] += (r.neto || r.nominal || 0);
+    if(idx >= 0) monthly[idx] += ( r.nominal || 0);
+    //if(idx >= 0) monthly[idx] += (r.neto || r.nominal || 0);
   });
 
   // BAR — Grafik GUP per bulan
@@ -875,7 +877,8 @@ function renderCharts(){
   // PIE — Realisasi vs Sisa Pagu
   const sheetRows      = allData.filter(r => r.sumber === 'sheet' && (!program || r.program === program));
   const totalPagu      = sheetRows.reduce((s,r) => s + r.pagu, 0);
-  const totalRealisasi = transaksi.reduce((s,r) => s + (r.neto || r.nominal || 0), 0);
+  const totalRealisasi = transaksi.reduce((s,r) => s + ( r.nominal || 0), 0);
+  //const totalRealisasi = transaksi.reduce((s,r) => s + (r.neto || r.nominal || 0), 0);
   const sisa           = Math.max(0, totalPagu - totalRealisasi);
 
   const ctx2 = document.getElementById('chartPagu').getContext('2d');

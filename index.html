@@ -623,7 +623,7 @@ async function loadData(){
         .filter(r => r && r.length > 4 && r[0] !== null)
         .map((r,i)=>{
           // Dokumen: bisa berisi URL (Google Drive) dipisah koma
-          const dokRaw  = String(r[12]||'').trim();
+          const dokRaw  = String(r[13]||'').trim();
           const dokList = dokRaw ? dokRaw.split(',').map(s=>s.trim()).filter(Boolean) : [];
           return {
             id             : 'P'+i,
@@ -644,7 +644,7 @@ async function loadData(){
             totalPajak     : parseN(r[11]),
             neto           : parseN(r[12]),
             dokumen        : dokList,
-            totalRealisasi : parseN(r[11]),
+            totalRealisasi : parseN(r[12]),
           };
         })
         .filter(r => r.nominal > 0 || r.neto > 0);

@@ -1085,7 +1085,9 @@ async function uploadSemuaFile(){
   const urls = [];
   for(let i=0; i<uploadedFiles.length; i++){
     const url = await uploadFileToDrive(uploadedFiles[i], i);
-    urls.push(url || uploadedFiles[i].name); // fallback ke nama file
+    if (url) {
+  urls.push(url);
+} // fallback ke nama file
   }
   return urls;
 }

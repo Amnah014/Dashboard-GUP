@@ -1052,7 +1052,7 @@ async function uploadFileToDrive(file, index){
       folderId: DRIVE_FOLDER_ID
     });
     // ⚠️ TANPA header Content-Type → simple request → tidak trigger CORS preflight
-    const res    = await fetch(SCRIPT_URL, { method:'POST', body: payload });
+    const res    = await fetch(SCRIPT_URL, { method:'POST', headers: {'Content-Type': 'text/plain;charset=utf-8'}, body: payload });
     const txt    = await res.text();
     const clean  = txt.replace(/^[^{[]*/, '').replace(/[^}\]]*$/, '');
     const result = JSON.parse(clean || '{}');
@@ -1090,7 +1090,9 @@ const DRIVE_FOLDER_ID = "1lwCNWlSY1ZP4XG68Sr0vhJRzgAczFnV2"; // Google Drive fol
 async function kirimKeSheet(data){
   try{
     // Tanpa Content-Type header = simple request = tidak ada CORS preflight
-    const res    = await fetch(SCRIPT_URL, { method:'POST', body: JSON.stringify(data) });
+    const res    = await fetch(SCRIPT_URL, { method:'POST', headers: {
+        'Content-Type': 'text/plain;charset=utf-8'
+      }, body: JSON.stringify(data) });
     const txt    = await res.text();
     const clean  = txt.replace(/^[^{[]*/, '').replace(/[^}\]]*$/, '');
     return JSON.parse(clean || '{"status":"ok"}');

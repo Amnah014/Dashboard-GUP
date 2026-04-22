@@ -527,7 +527,7 @@ let currentPage  = 1;
 const PER_PAGE   = 10;
 let cGUP=null, cPagu=null;
 let uploadedFiles = [];
-let localData = JSON.parse(localStorage.getItem('gupLocal')||'[]');
+let  = JSON.parse(localStorage.getItem('gupLocal')||'[]');
 let nextId = localData.length ? Math.max(...localData.map(d=>d.id),0)+1 : 1;
 
 /* ============================================================
@@ -654,16 +654,16 @@ async function loadData(){
 
     // ── 3. Gabungkan: lokalData + pengajuan sheet (tanpa duplikat) + database sheet ──
     // Buat key set dari localData agar tidak duplikat dengan fromPengajuan
-    const localKeys = new Set(
-      localData.map(d => `${d.tanggal}|${d.nominal}|${(d.kodeItem||'').trim()}`)
-    );
-    const fromPengajuanUniq = fromPengajuan.filter(r => {
-      const k = `${r.tanggal}|${r.nominal}|${(r.kodeItem||'').trim()}`;
-      return !localKeys.has(k);
-    });
+    // const localKeys = new Set(
+    //   localData.map(d => `${d.tanggal}|${d.nominal}|${(d.kodeItem||'').trim()}`)
+    // );
+    // const fromPengajuanUniq = fromPengajuan.filter(r => {
+    //   const k = `${r.tanggal}|${r.nominal}|${(r.kodeItem||'').trim()}`;
+    //   return !localKeys.has(k);
+    // });
 
     allData = [
-      ...localData.map(d=>({...d, sumber:'local'})),
+      //...localData.map(d=>({...d, sumber:'local'})),
       ...fromPengajuanUniq,
       ...fromSheet,
     ];
@@ -674,7 +674,7 @@ async function loadData(){
   } catch(e){
     hideOv();
     showNote('⚠️ Gagal memuat Google Sheets: '+e.message+'. Pastikan sheet sudah dipublikasikan (File → Share → Publish to web).');
-    allData = [...localData.map(d=>({...d,sumber:'local'}))];
+    //allData = [...localData.map(d=>({...d,sumber:'local'}))];
     applyFilter();
   }
 }
@@ -722,8 +722,8 @@ function applyFilter(){
   const program = document.getElementById('filterProgram').value;
 
   // Data transaksi GUP nyata (local + pengajuan sheet)
-  const transaksi = allData.filter(r => r.sumber === 'local' || r.sumber === 'pengajuan');
-
+  const transaksi = allData.filter(r => r.sumber === 'pengajuan');
+    //r.sumber === 'local' || 
   // filteredData = transaksi yang cocok filter bulan & program
   filteredData = transaksi.filter(r => {
     const matchProg  = !program || r.program === program;
@@ -1152,9 +1152,10 @@ async function submitGUP(){
   };
 
   // Simpan lokal dulu (langsung tampil di dashboard)
-  localData.unshift(rec);
-  localStorage.setItem('gupLocal',JSON.stringify(localData));
-  allData.unshift({...rec});
+  //localData.unshift(rec);
+  //localStorage.setItem('gupLocal',JSON.stringify(localData));
+  //allData.unshift({...rec});
+  await loadData();
   applyFilter();
   renderRiwayat();
 

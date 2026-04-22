@@ -1161,10 +1161,9 @@ async function submitGUP(){
   };
 
   // Simpan lokal dulu (langsung tampil di dashboard)
-  //localData.unshift(rec);
-  //localStorage.setItem('gupLocal',JSON.stringify(localData));
-  //allData.unshift({...rec});
-  await loadData();
+  localData.unshift(rec);
+  localStorage.setItem('gupLocal',JSON.stringify(localData));
+  allData.unshift({...rec});
   applyFilter();
   renderRiwayat();
 

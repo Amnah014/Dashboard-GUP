@@ -775,10 +775,19 @@ function renderStats(bulan, program){
   // Total Realisasi = seluruh neto (semua bulan, program sesuai filter)
   const totalRealisasi = semuaTrx.reduce((s,r) => s + (r.neto || r.nominal || 0), 0);
 
-  // GUP Bulan Ini = bulan kalender sekarang (bukan filter)
-  const nowBulanNama = BULAN_NAMES[new Date().getMonth()];
-  const gupBulanIni  = semuaTrx
-    .filter(r => (r.bulan||'').trim() === nowBulanNama)
+  // GUP Bulan Ini:
+  // — jika filter bulan dipilih → tampilkan total bulan tersebut
+  // — jika "Semua Bulan" → tampilkan bulan kalender sekarang
+  const targetBulan = bulan > 0
+    ? BULAN_NAMES[bulan - 1]
+    : BULAN_NAMES[new Date().getMonth()];
+
+  // Update label card agar tahu bulan mana yang ditampilkan
+  const elLabel = document.getElementById('lblGupBulan');
+  if(elLabel) elLabel.textContent = `GUP ${targetBulan}`;
+
+  const gupBulanIni = trx
+    .filter(r => (r.bulan||'').trim() === targetBulan)
     .reduce((s,r) => s + (r.neto || r.nominal || 0), 0);
 
   // Sisa Anggaran

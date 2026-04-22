@@ -663,7 +663,7 @@ async function loadData(){
     // });
 
     allData = [
-      //...localData.map(d=>({...d, sumber:'local'})),
+      ...localData.map(d=>({...d, sumber:'local'})),
       ...fromPengajuanUniq,
       ...fromSheet,
     ];
@@ -674,7 +674,7 @@ async function loadData(){
   } catch(e){
     hideOv();
     showNote('⚠️ Gagal memuat Google Sheets: '+e.message+'. Pastikan sheet sudah dipublikasikan (File → Share → Publish to web).');
-    //allData = [...localData.map(d=>({...d,sumber:'local'}))];
+    allData = [...localData.map(d=>({...d,sumber:'local'}))];
     applyFilter();
   }
 }
@@ -722,8 +722,8 @@ function applyFilter(){
   const program = document.getElementById('filterProgram').value;
 
   // Data transaksi GUP nyata (local + pengajuan sheet)
-  const transaksi = allData.filter(r => r.sumber === 'pengajuan');
-    //r.sumber === 'local' || 
+  const transaksi = allData.filter(r => r.sumber === 'local' || r.sumber === 'pengajuan');
+  
   // filteredData = transaksi yang cocok filter bulan & program
   filteredData = transaksi.filter(r => {
     const matchProg  = !program || r.program === program;

@@ -296,6 +296,7 @@ tbody td{padding:8px 12px;font-size:12px;font-weight:600;color:var(--txt-dark);b
             <tr>
                 <th>No</th>
                 <th>Tanggal</th>
+                <th>Penerima</th>
                 <th>Uraian</th>
                 <th>Nominal</th>
                 <th>Kode Akun</th>
@@ -353,6 +354,10 @@ tbody td{padding:8px 12px;font-size:12px;font-weight:600;color:var(--txt-dark);b
       <div class="fgroup">
         <label>Kode Akun <span class="req">*</span></label>
         <input type="text" id="inp-kodeakun" placeholder="Terisi otomatis / isi manual" readonly style="background:#f0ead8;">
+      </div>
+      <div class="fgroup sp2">
+        <label>Nama Penerima <span class="req">*</span></label>
+        <input type="text" id="inp-penerima" placeholder="Nama lengkap penerima dana GUP…" required>
       </div>
       <div class="fgroup sp2">
         <label>Uraian Kegiatan <span class="req">*</span></label>
@@ -477,7 +482,7 @@ tbody td{padding:8px 12px;font-size:12px;font-weight:600;color:var(--txt-dark);b
         <thead>
           <tr>
             <th>No</th><th>Tanggal</th><th>Program</th><th>Kode Item</th>
-            <th>Uraian</th><th>Nominal Bruto</th><th>DPP</th><th>PPN</th><th>PPh 22</th><th>PPh 23</th>
+            <th>Penerima</th><th>Uraian</th><th>Nominal Bruto</th><th>DPP</th><th>PPN</th><th>PPh 22</th><th>PPh 23</th>
             <th>Total Pajak</th><th>Neto</th><th>Bulan</th><th>Dokumen</th><th>Aksi</th>
           </tr>
         </thead>
@@ -934,7 +939,8 @@ function renderTable(){
       return `<tr>
         <td>${start+i+1}</td>
         <td style="white-space:nowrap;">${r.tanggal || '–'}</td>
-        <td style="white-space:normal;max-width:280px;font-size:12px;">${r.uraian || '–'}</td>
+        <td style="white-space:nowrap;font-weight:800;color:var(--card-dark);">${r.penerima || '–'}</td>
+        <td style="white-space:normal;max-width:260px;font-size:12px;">${r.uraian || '–'}</td>
         <td style="white-space:nowrap;"><strong>Rp ${fmtRp(r.neto || r.nominal || r.totalRealisasi || 0)}</strong></td>
         <td>${r.kodeAkun || '–'}</td>
         <td>${r.kodeItem || '–'}</td>
@@ -1052,7 +1058,7 @@ async function uploadFileToDrive(file, index){
       folderId: DRIVE_FOLDER_ID
     });
     // ⚠️ TANPA header Content-Type → simple request → tidak trigger CORS preflight
-    const res    = await fetch(SCRIPT_URL, { method:'POST', headers: {'Content-Type': 'text/plain;charset=utf-8'}, body: payload });
+    const res    = await fetch(SCRIPT_URL, { method:'POST', body: payload });
     const txt    = await res.text();
     const clean  = txt.replace(/^[^{[]*/, '').replace(/[^}\]]*$/, '');
     const result = JSON.parse(clean || '{}');
@@ -1084,15 +1090,13 @@ async function uploadSemuaFile(){
 }
 
 
-const SCRIPT_URL     = "https://script.google.com/macros/s/AKfycbwm2MGtR0FoI3XXuHS75_HNfPB2jY-4BCjGf-sqXAHVlK7NlsLD7ew7FKtbIFN4IKNT/exec";
+const SCRIPT_URL     = "https://script.google.com/macros/s/AKfycbyHwTZyLJHDYyVC6bXFJq0Ks5afp6brYy3_ExtjWUIUnffoDg3yYprhybcbdTLiN-CX/exec";
 const DRIVE_FOLDER_ID = "1lwCNWlSY1ZP4XG68Sr0vhJRzgAczFnV2"; // Google Drive folder tujuan upload
 
 async function kirimKeSheet(data){
   try{
     // Tanpa Content-Type header = simple request = tidak ada CORS preflight
-    const res    = await fetch(SCRIPT_URL, { method:'POST', headers: {
-        'Content-Type': 'text/plain;charset=utf-8'
-      }, body: JSON.stringify(data) });
+    const res    = await fetch(SCRIPT_URL, { method:'POST', body: JSON.stringify(data) });
     const txt    = await res.text();
     const clean  = txt.replace(/^[^{[]*/, '').replace(/[^}\]]*$/, '');
     return JSON.parse(clean || '{"status":"ok"}');
@@ -1110,6 +1114,7 @@ async function submitGUP(){
   const program  = document.getElementById('inp-program').value;
   const kodeItem = document.getElementById('inp-kodeitem').value;
   const kodeAkun = document.getElementById('inp-kodeakun').value;
+  const penerima = document.getElementById('inp-penerima').value.trim();
   const uraian   = document.getElementById('inp-uraian').value.trim();
   const nominal  = parseFloat(document.getElementById('inp-nominal').value)||0;
   const bulan    = document.getElementById('inp-bulan').value;
@@ -1117,7 +1122,7 @@ async function submitGUP(){
   const pph22    = parseFloat(document.getElementById('inp-pph22').value)||0;
   const pph23    = parseFloat(document.getElementById('inp-pph23').value)||0;
 
-  if(!tanggal||!program||!kodeItem||!uraian||!nominal||!bulan){
+  if(!tanggal||!program||!kodeItem||!penerima||!uraian||!nominal||!bulan){
     alert('⚠️ Harap lengkapi semua field yang wajib diisi (*).');return;
   }
 
@@ -1135,7 +1140,7 @@ async function submitGUP(){
 
   const rec = {
     id:nextId++, sumber:'local',
-    tanggal, program, kodeItem, kodeAkun, uraian,
+    tanggal, program, kodeItem, kodeAkun, penerima, uraian,
     pagu:0, nominal, dpp, neto, bulan,
     ppn, pph22, pph23, totalPajak,
     totalRealisasi:neto, sisaAnggaran:0, pctRealisasi:0,
@@ -1152,24 +1157,17 @@ async function submitGUP(){
   // ── 2. Kirim data ke sheet Pengajuan ──
   const payload = {
     action   : 'tambahPengajuan',
-    tanggal, program, kodeItem, kodeAkun, uraian,
+    tanggal, program, kodeItem, kodeAkun, penerima, uraian,
     nominal, dpp, bulan, ppn, pph22, pph23, totalPajak, neto,
     dokumen  : dokumenList.join(', ')
   };
 
   showOv('Menyimpan ke Google Sheets…');
-try {
-  const result = await kirimKeSheet(payload);
-  hideOv();
-  if(result.status === 'ok'){
+  kirimKeSheet(payload).then(result=>{
+    hideOv();
     showNote('✅ Data & dokumen berhasil disimpan!', 'ok');
-  } else {
-    showNote('⚠️ Gagal simpan ke sheet: ' + (result.message || 'unknown'), 'err');
-  }
-} catch (e) {
-  hideOv();
-  showNote('⚠️ Data hanya tersimpan lokal!', 'err');
-}
+    // TIDAK reload loadData() agar tidak duplikat — data sudah ada di localData
+  }).catch(()=>{ hideOv(); showNote('⚠️ Data tersimpan lokal.','err'); });
 
   const t=document.getElementById('toast');
   t.classList.add('on'); setTimeout(()=>t.classList.remove('on'),3500);
@@ -1177,7 +1175,7 @@ try {
 }
 
 function resetForm(){
-  ['inp-tanggal','inp-program','inp-kodeitem','inp-kodeakun','inp-uraian',
+  ['inp-tanggal','inp-program','inp-kodeitem','inp-kodeakun','inp-penerima','inp-uraian',
    'inp-nominal','inp-bulan','inp-ppn','inp-pph22','inp-pph23']
     .forEach(id=>{ document.getElementById(id).value=''; });
   document.getElementById('inp-tanggal').value = new Date().toISOString().split('T')[0];
@@ -1209,7 +1207,8 @@ function renderRiwayat(){
       <td>${r.tanggal||'–'}</td>
       <td><strong>${r.program}</strong></td>
       <td>${r.kodeItem}</td>
-      <td style="max-width:200px;font-size:11px;white-space:normal;">${r.uraian}</td>
+      <td style="font-weight:800;white-space:nowrap;">${r.penerima||'–'}</td>
+      <td style="max-width:180px;font-size:11px;white-space:normal;">${r.uraian}</td>
       <td>Rp ${fmtRp(r.nominal)}</td>
       <td style="color:var(--card-dark);font-weight:800;">Rp ${fmtRp(r.dpp||Math.round((r.nominal||0)/1.12))}</td>
       <td>${r.ppn?'Rp '+fmtRp(r.ppn):'–'}</td>

@@ -613,8 +613,8 @@ async function loadData(){
 
     // ── 2. Baca sheet PENGAJUAN untuk rincian GUP ──
     // Kolom sheet pengajuan:
-    // Tanggal(0) Program(1) KodeItem(2) KodeAkun(3) Uraian(4)
-    // Nominal(5) Bulan(6) PPN(7) PPh22(8) PPh23(9) TotalPajak(10) Neto(11) Dokumen(12)
+    // Tanggal(0) Program(1) KodeItem(2) KodeAkun(3) Nama Penerima (4) Uraian(5)
+    // Nominal(6) Bulan(7) PPN(8) PPh22(9) PPh23(10) TotalPajak(11) Neto(12) Dokumen(13)
     let fromPengajuan = [];
     try {
       const respP = await fetchGviz(PENGAJUAN_GID);
@@ -634,14 +634,15 @@ async function loadData(){
             program        : String(r[1]||'').trim(),
             kodeItem       : String(r[2]||'').trim(),
             kodeAkun       : String(r[3]||'').trim(),
-            uraian         : String(r[4]||'–').trim(),
-            nominal        : parseN(r[5]),
-            bulan          : String(r[6]||'').trim(),
-            ppn            : parseN(r[7]),
-            pph22          : parseN(r[8]),
-            pph23          : parseN(r[9]),
-            totalPajak     : parseN(r[10]),
-            neto           : parseN(r[11]),
+            penerima       : String(r[4]||'–').trim(),
+            uraian         : String(r[5||'–').trim(),
+            nominal        : parseN(r[6]),
+            bulan          : String(r[7]||'').trim(),
+            ppn            : parseN(r[8]),
+            pph22          : parseN(r[9]),
+            pph23          : parseN(r[10]),
+            totalPajak     : parseN(r[11]),
+            neto           : parseN(r[12]),
             dokumen        : dokList,
             totalRealisasi : parseN(r[11]),
           };

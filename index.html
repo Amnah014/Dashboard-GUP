@@ -1090,7 +1090,9 @@ const DRIVE_FOLDER_ID = "1lwCNWlSY1ZP4XG68Sr0vhJRzgAczFnV2"; // Google Drive fol
 async function kirimKeSheet(data){
   try{
     // Tanpa Content-Type header = simple request = tidak ada CORS preflight
-    const res    = await fetch(SCRIPT_URL, { method:'POST', body: JSON.stringify(data) });
+    const res    = await fetch(SCRIPT_URL, { method:'POST', headers: {
+  "Content-Type": "application/json"
+}, body: JSON.stringify(data) });
     const txt    = await res.text();
     const clean  = txt.replace(/^[^{[]*/, '').replace(/[^}\]]*$/, '');
     return JSON.parse(clean || '{"status":"ok"}');
@@ -1156,11 +1158,18 @@ async function submitGUP(){
   };
 
   showOv('Menyimpan ke Google Sheets…');
-  kirimKeSheet(payload).then(result=>{
-    hideOv();
+try {
+  const result = await kirimKeSheet(payload);
+  hideOv();
+  if(result.status === 'ok'){
     showNote('✅ Data & dokumen berhasil disimpan!', 'ok');
-    // TIDAK reload loadData() agar tidak duplikat — data sudah ada di localData
-  }).catch(()=>{ hideOv(); showNote('⚠️ Data tersimpan lokal.','err'); });
+  } else {
+    showNote('⚠️ Gagal simpan ke sheet: ' + (result.message || 'unknown'), 'err');
+  }
+} catch (e) {
+  hideOv();
+  showNote('⚠️ Data hanya tersimpan lokal!', 'err');
+}
 
   const t=document.getElementById('toast');
   t.classList.add('on'); setTimeout(()=>t.classList.remove('on'),3500);

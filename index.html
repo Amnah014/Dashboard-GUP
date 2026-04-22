@@ -654,19 +654,33 @@ async function loadData(){
 
     // ── 3. Gabungkan: lokalData + pengajuan sheet (tanpa duplikat) + database sheet ──
     // Buat key set dari localData agar tidak duplikat dengan fromPengajuan
-    const localKeys = new Set(
-      localData.map(d => `${d.tanggal}|${d.nominal}|${(d.kodeItem||'').trim()}`)
-    );
-    const fromPengajuanUniq = fromPengajuan.filter(r => {
-      const k = `${r.tanggal}|${r.nominal}|${(r.kodeItem||'').trim()}`;
-      return !localKeys.has(k);
-    });
+    const combined = [...localData, ...fromPengajuan];
+
+// hapus duplikat
+const uniqueMap = new Map();
+
+combined.forEach(r => {
+  const key = [
+    r.tanggal,
+    r.nominal,
+    (r.kodeItem || '').trim(),
+    (r.uraian || '').trim()
+  ].join('|');
+
+  if (!uniqueMap.has(key)) {
+    uniqueMap.set(key, r);
+  }
+});
+
+const dataTransaksi = Array.from(uniqueMap.values());
 
     allData = [
-      ...localData.map(d=>({...d, sumber:'local'})),
-      ...fromPengajuanUniq,
-      ...fromSheet,
-    ];
+  ...dataTransaksi.map(d => ({
+    ...d,
+    sumber: d.sumber || 'gabungan'
+  })),
+  ...fromSheet
+];
 
     applyFilter();
     hideOv();

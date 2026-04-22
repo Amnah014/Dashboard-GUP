@@ -233,7 +233,7 @@ tbody td{padding:8px 12px;font-size:12px;font-weight:600;color:var(--txt-dark);b
       <div class="dash-title"><span>Monitoring</span><span>GUP</span></div>
       <div class="filter-row" style="margin-top:14px;margin-bottom:0;">
         <span class="filter-lbl">Filter Bulan</span>
-        <select class="fsel" id="filterBulan" onchange="()">
+        <select class="fsel" id="filterBulan" onchange="applyFilter()">
           <option value="0">Semua Bulan</option>
           <option value="1">Januari</option><option value="2">Februari</option>
           <option value="3">Maret</option><option value="4">April</option>
@@ -242,7 +242,7 @@ tbody td{padding:8px 12px;font-size:12px;font-weight:600;color:var(--txt-dark);b
           <option value="9">September</option><option value="10">Oktober</option>
           <option value="11">November</option><option value="12">Desember</option>
         </select>
-        <select class="fsel" id="filterProgram" onchange="()">
+        <select class="fsel" id="filterProgram" onchange="applyFilter()">
           <option value="">Semua Program</option>
           <option value="CQ">CQ</option>
           <option value="WA">WA</option>
@@ -721,9 +721,9 @@ function applyFilter(){
   const bulan   = parseInt(document.getElementById('filterBulan').value)||0;
   const program = document.getElementById('filterProgram').value;
 
-  // Data transaksi GUP nyata (local + pengajuan sheet)
+  // Rincian GUP hanya dari local — tidak double dengan sheet pengajuan
   const transaksi = allData.filter(r => r.sumber === 'local');
-  //|| r.sumber === 'pengajuan'
+  
   // filteredData = transaksi yang cocok filter bulan & program
   filteredData = transaksi.filter(r => {
     const matchProg  = !program || r.program === program;
@@ -761,28 +761,24 @@ function updateColHead(bulan){
    ============================================================ */
 function renderStats(bulan, program){
   // Pagu dari sheet database
-  const sheetRows = allData.filter(r => r.sumber === 'sheet');
-  const totalPagu = sheetRows
-    .filter(r => !program || r.program === program)
+  const totalPagu = allData
+    .filter(r => r.sumber === 'sheet' && (!program || r.program === program))
     .reduce((s,r) => s + r.pagu, 0);
 
-  // Semua transaksi (filter program saja, tidak filter bulan untuk total realisasi)
+  // Semua transaksi hanya dari local (agar tidak double hitung dengan pengajuan)
   const semuaTrx = allData.filter(r =>
-    (r.sumber === 'local' || r.sumber === 'pengajuan') &&
+    r.sumber === 'local' &&
     (!program || r.program === program)
   );
 
-  // Total Realisasi = seluruh neto (semua bulan, program sesuai filter)
+  // Total Realisasi = seluruh neto local
   const totalRealisasi = semuaTrx.reduce((s,r) => s + (r.neto || r.nominal || 0), 0);
 
-  // GUP Bulan Ini:
-  // — jika filter bulan dipilih → tampilkan total bulan tersebut
-  // — jika "Semua Bulan" → tampilkan bulan kalender sekarang
+  // GUP Bulan Ini: ikut filter bulan, atau bulan kalender sekarang
   const targetBulan = bulan > 0
     ? BULAN_NAMES[bulan - 1]
     : BULAN_NAMES[new Date().getMonth()];
 
-  // Update label card agar tahu bulan mana yang ditampilkan
   const elLabel = document.getElementById('lblGupBulan');
   if(elLabel) elLabel.textContent = `GUP ${targetBulan}`;
 
@@ -790,7 +786,6 @@ function renderStats(bulan, program){
     .filter(r => (r.bulan||'').trim() === targetBulan)
     .reduce((s,r) => s + (r.neto || r.nominal || 0), 0);
 
-  // Sisa Anggaran
   const sisa = Math.max(0, totalPagu - totalRealisasi);
 
   document.getElementById('valPagu').textContent      = fmtRp(totalPagu);
@@ -798,7 +793,6 @@ function renderStats(bulan, program){
   document.getElementById('valGupBulan').textContent  = fmtRp(gupBulanIni);
   document.getElementById('valSisa').textContent      = fmtRp(sisa);
 }
-  
 
 /* ============================================================
    KODE AKUN LIST — dari filteredData (transaksi terfilter)
@@ -832,8 +826,9 @@ function renderAkunList(){
    ============================================================ */
 function renderCharts(){
   const program   = document.getElementById('filterProgram').value;
+  // Hanya dari local — hindari double hitung dengan pengajuan sheet
   const transaksi = allData.filter(r =>
-    (r.sumber === 'local' || r.sumber === 'pengajuan') &&
+    r.sumber === 'local' &&
     (!program || r.program === program)
   );
 

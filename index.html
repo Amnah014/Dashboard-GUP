@@ -777,13 +777,18 @@ function renderStats(bulan, program){
 
   // GUP Bulan Ini = bulan kalender sekarang (bukan filter)
   const nowBulanNama = BULAN_NAMES[new Date().getMonth()];
-  const gupBulanIni  = semuaTrx
-  .filter(r => {
-      const bulanData = String(r.bulan || '').trim().toLowerCase();
-      const bulanNow  = nowBulanNama.toLowerCase();
-      return bulanData === bulanNow;
-  })
+  let gupBulanIni = 0;
+
+if (bulan === 0) {
+  // semua bulan
+  gupBulanIni = semuaTrx.reduce((s,r) => s + (r.neto || r.nominal || 0), 0);
+} else {
+  const bulanDipilih = BULAN_NAMES[bulan - 1].toLowerCase();
+
+  gupBulanIni = semuaTrx
+    .filter(r => String(r.bulan || '').trim().toLowerCase() === bulanDipilih)
     .reduce((s,r) => s + (r.neto || r.nominal || 0), 0);
+}
 
   // Sisa Anggaran
   const sisa = Math.max(0, totalPagu - totalRealisasi);

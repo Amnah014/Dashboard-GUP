@@ -772,8 +772,8 @@ function renderStats(bulan, program){
   );
 
   // Total Realisasi = seluruh neto local
-  const totalRealisasi = semuaTrx.reduce((s,r) => s + (r.neto || r.nominal || 0), 0);
-
+  const totalRealisasi = semuaTrx.reduce((s,r) => s + (r.nominal || 0), 0);
+  //const totalRealisasi = semuaTrx.reduce((s,r) => s + (r.neto || r.nominal || 0), 0);
   // GUP Bulan Ini: ikut filter bulan, atau bulan kalender sekarang
   const targetBulan = bulan > 0
     ? BULAN_NAMES[bulan - 1]
@@ -784,8 +784,8 @@ function renderStats(bulan, program){
 
   const gupBulanIni = semuaTrx
     .filter(r => (r.bulan||'').trim() === targetBulan)
-    .reduce((s,r) => s + (r.neto || r.nominal || 0), 0);
-
+    .reduce((s,r) => s + (r.nominal || 0), 0);
+    //.reduce((s,r) => s + (r.neto || r.nominal || 0), 0);
   const sisa = Math.max(0, totalPagu - totalRealisasi);
 
   document.getElementById('valPagu').textContent      = fmtRp(totalPagu);

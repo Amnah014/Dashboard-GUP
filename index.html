@@ -393,7 +393,12 @@ tbody td{padding:8px 12px;font-size:12px;font-weight:600;color:var(--txt-dark);b
     <!-- PAJAK BOX -->
     <div class="pajak-section">
       <div class="pajak-title">🧾 Komponen Pajak</div>
-      <div class="fg3">
+      <div class="fg4">
+        <div class="fgroup">
+          <label>Pajak PPh Pasal 21 (Rp)</label>
+          <input type="number" id="inp-pph21" placeholder="0" min="0" oninput="hitungPajak()">
+          <span class="inp-hint">Isi manual — pegawai/honorarium</span>
+        </div>
         <div class="fgroup">
           <label>Pajak PPN (Rp)</label>
           <input type="number" id="inp-ppn" placeholder="0" min="0" oninput="hitungPajak()">
@@ -477,12 +482,13 @@ tbody td{padding:8px 12px;font-size:12px;font-weight:600;color:var(--txt-dark);b
   <!-- RIWAYAT -->
   <div class="riwayat-card">
     <div class="riwayat-head">Riwayat Input Pengajuan GUP</div>
-    <div style="overflow:auto;">
+    <div style="overflow:auto;max-height:420px;">
       <table>
         <thead>
           <tr>
             <th>No</th><th>Tanggal</th><th>Program</th><th>Kode Item</th>
-            <th>Penerima</th><th>Uraian</th><th>Nominal Bruto</th><th>DPP</th><th>PPN</th><th>PPh 22</th><th>PPh 23</th>
+            <th>Penerima</th><th>Uraian</th><th>Nominal Bruto</th><th>DPP</th>
+            <th>PPh 21</th><th>PPN</th><th>PPh 22</th><th>PPh 23</th>
             <th>Total Pajak</th><th>Neto</th><th>Bulan</th><th>Dokumen</th><th>Aksi</th>
           </tr>
         </thead>
@@ -614,7 +620,7 @@ async function loadData(){
     // ── 2. Baca sheet PENGAJUAN untuk rincian GUP ──
     // Kolom sheet pengajuan:
     // Tanggal(0) Program(1) KodeItem(2) KodeAkun(3) Nama Penerima (4) Uraian(5)
-    // Nominal(6) Bulan(7) PPN(8) PPh22(9) PPh23(10) TotalPajak(11) Neto(12) Dokumen(13)
+    // Nominal(6) Bulan(7) PPh21(8) PPN(9) PPh22(10) PPh23(11) TotalPajak(12) Neto(13) Dokumen(14)
     let fromPengajuan = [];
     try {
       const respP = await fetchGviz(PENGAJUAN_GID);
@@ -638,13 +644,14 @@ async function loadData(){
             uraian         : String(r[5]||'–').trim(),
             nominal        : parseN(r[6]),
             bulan          : String(r[7]||'').trim(),
-            ppn            : parseN(r[8]),
-            pph22          : parseN(r[9]),
-            pph23          : parseN(r[10]),
-            totalPajak     : parseN(r[11]),
-            neto           : parseN(r[12]),
+            pph21          : parseN(r[8]),
+            ppn            : parseN(r[9]),
+            pph22          : parseN(r[10]),
+            pph23          : parseN(r[11]),
+            totalPajak     : parseN(r[12]),
+            neto           : parseN(r[13]),
             dokumen        : dokList,
-            totalRealisasi : parseN(r[12]),
+            totalRealisasi : parseN(r[13]),
           };
         })
         .filter(r => r.nominal > 0 || r.neto > 0);
@@ -721,9 +728,9 @@ function applyFilter(){
   const bulan   = parseInt(document.getElementById('filterBulan').value)||0;
   const program = document.getElementById('filterProgram').value;
 
-  // Rincian GUP hanya dari local — tidak double dengan sheet pengajuan
-  const transaksi = allData.filter(r => r.sumber === 'local');
-  
+  // Data transaksi GUP nyata (local + pengajuan sheet)
+  const transaksi = allData.filter(r => r.sumber === 'local' );
+  //|| r.sumber === 'pengajuan'
   // filteredData = transaksi yang cocok filter bulan & program
   filteredData = transaksi.filter(r => {
     const matchProg  = !program || r.program === program;
@@ -761,31 +768,36 @@ function updateColHead(bulan){
    ============================================================ */
 function renderStats(bulan, program){
   // Pagu dari sheet database
-  const totalPagu = allData
-    .filter(r => r.sumber === 'sheet' && (!program || r.program === program))
+  const sheetRows = allData.filter(r => r.sumber === 'sheet');
+  const totalPagu = sheetRows
+    .filter(r => !program || r.program === program)
     .reduce((s,r) => s + r.pagu, 0);
 
-  // Semua transaksi hanya dari local (agar tidak double hitung dengan pengajuan)
+  // Semua transaksi (filter program saja, tidak filter bulan untuk total realisasi)
   const semuaTrx = allData.filter(r =>
-    r.sumber === 'local' &&
+    (r.sumber === 'local') &&
     (!program || r.program === program)
   );
 
-  // Total Realisasi = seluruh neto local
-  const totalRealisasi = semuaTrx.reduce((s,r) => s + (r.nominal || 0), 0);
-  //const totalRealisasi = semuaTrx.reduce((s,r) => s + (r.neto || r.nominal || 0), 0);
-  // GUP Bulan Ini: ikut filter bulan, atau bulan kalender sekarang
+  // Total Realisasi = seluruh neto (semua bulan, program sesuai filter)
+  const totalRealisasi = semuaTrx.reduce((s,r) => s + ( r.nominal || 0), 0);
+
+  // GUP Bulan Ini:
+  // — jika filter bulan dipilih → tampilkan total bulan tersebut
+  // — jika "Semua Bulan" → tampilkan bulan kalender sekarang
   const targetBulan = bulan > 0
     ? BULAN_NAMES[bulan - 1]
     : BULAN_NAMES[new Date().getMonth()];
 
+  // Update label card agar tahu bulan mana yang ditampilkan
   const elLabel = document.getElementById('lblGupBulan');
   if(elLabel) elLabel.textContent = `GUP ${targetBulan}`;
 
   const gupBulanIni = semuaTrx
     .filter(r => (r.bulan||'').trim() === targetBulan)
-    .reduce((s,r) => s + (r.nominal || 0), 0);
-    //.reduce((s,r) => s + (r.neto || r.nominal || 0), 0);
+    .reduce((s,r) => s + ( r.nominal || 0), 0);
+
+  // Sisa Anggaran
   const sisa = Math.max(0, totalPagu - totalRealisasi);
 
   document.getElementById('valPagu').textContent      = fmtRp(totalPagu);
@@ -793,6 +805,7 @@ function renderStats(bulan, program){
   document.getElementById('valGupBulan').textContent  = fmtRp(gupBulanIni);
   document.getElementById('valSisa').textContent      = fmtRp(sisa);
 }
+  
 
 /* ============================================================
    KODE AKUN LIST — dari filteredData (transaksi terfilter)
@@ -802,7 +815,6 @@ function renderAkunList(){
   filteredData.forEach(r => {
     const k    = r.kodeAkun || '–';
     const nilai = r.nominal || 0;
-    //const nilai = r.neto || r.nominal || 0;
     if(nilai > 0) map[k] = (map[k]||0) + nilai;
   });
 
@@ -827,9 +839,8 @@ function renderAkunList(){
    ============================================================ */
 function renderCharts(){
   const program   = document.getElementById('filterProgram').value;
-  // Hanya dari local — hindari double hitung dengan pengajuan sheet
   const transaksi = allData.filter(r =>
-    r.sumber === 'local' &&
+    (r.sumber === 'local' ) &&
     (!program || r.program === program)
   );
 
@@ -837,8 +848,7 @@ function renderCharts(){
   const monthly = Array(12).fill(0);
   transaksi.forEach(r => {
     const idx = BULAN_NAMES.indexOf((r.bulan||'').trim());
-    if(idx >= 0) monthly[idx] += ( r.nominal || 0);
-    //if(idx >= 0) monthly[idx] += (r.neto || r.nominal || 0);
+    if(idx >= 0) monthly[idx] += (r.nominal || 0);
   });
 
   // BAR — Grafik GUP per bulan
@@ -877,8 +887,7 @@ function renderCharts(){
   // PIE — Realisasi vs Sisa Pagu
   const sheetRows      = allData.filter(r => r.sumber === 'sheet' && (!program || r.program === program));
   const totalPagu      = sheetRows.reduce((s,r) => s + r.pagu, 0);
-  const totalRealisasi = transaksi.reduce((s,r) => s + ( r.nominal || 0), 0);
-  //const totalRealisasi = transaksi.reduce((s,r) => s + (r.neto || r.nominal || 0), 0);
+  const totalRealisasi = transaksi.reduce((s,r) => s + (r.nominal || 0), 0);
   const sisa           = Math.max(0, totalPagu - totalRealisasi);
 
   const ctx2 = document.getElementById('chartPagu').getContext('2d');
@@ -976,14 +985,14 @@ function changePage(d){
 function hitungPajak(){
   const bruto      = parseFloat(document.getElementById('inp-nominal').value)||0;
   const dpp        = Math.round(bruto / 1.12);
+  const pph21      = parseFloat(document.getElementById('inp-pph21').value)||0;
   const ppn        = parseFloat(document.getElementById('inp-ppn').value)||0;
   const pph22      = parseFloat(document.getElementById('inp-pph22').value)||0;
   const pph23      = parseFloat(document.getElementById('inp-pph23').value)||0;
-  const totalPajak = ppn + pph22 + pph23;
+  const totalPajak = pph21 + ppn + pph22 + pph23;
   const neto       = Math.max(0, bruto - totalPajak);
 
-  // Update DPP di dalam pajak-total box
-  document.getElementById('dppDisplayPajak').textContent = 'Rp ' + fmtRp(dpp);
+  document.getElementById('dppDisplayPajak').textContent   = 'Rp ' + fmtRp(dpp);
   document.getElementById('totalPajakDisplay').textContent = 'Rp ' + fmtRp(totalPajak);
   document.getElementById('nominalNetDisplay').textContent = 'Rp ' + fmtRp(neto);
 }
@@ -1009,7 +1018,7 @@ function autoHitungPPh23(){
   hitungPajak();
 }
 function clearPajak(){
-  ['inp-ppn','inp-pph22','inp-pph23'].forEach(id=>document.getElementById(id).value='');
+  ['inp-pph21','inp-ppn','inp-pph22','inp-pph23'].forEach(id=>document.getElementById(id).value='');
   hitungPajak();
 }
 
@@ -1131,6 +1140,7 @@ async function submitGUP(){
   const nominal  = parseFloat(document.getElementById('inp-nominal').value)||0;
   const bulan    = document.getElementById('inp-bulan').value;
   const ppn      = parseFloat(document.getElementById('inp-ppn').value)||0;
+  const pph21    = parseFloat(document.getElementById('inp-pph21').value)||0;
   const pph22    = parseFloat(document.getElementById('inp-pph22').value)||0;
   const pph23    = parseFloat(document.getElementById('inp-pph23').value)||0;
 
@@ -1138,7 +1148,7 @@ async function submitGUP(){
     alert('⚠️ Harap lengkapi semua field yang wajib diisi (*).');return;
   }
 
-  const totalPajak = ppn+pph22+pph23;
+  const totalPajak = pph21+ppn+pph22+pph23;
   const neto       = Math.max(0,nominal-totalPajak);
   const dpp        = Math.round(nominal / 1.12);
 
@@ -1154,7 +1164,7 @@ async function submitGUP(){
     id:nextId++, sumber:'local',
     tanggal, program, kodeItem, kodeAkun, penerima, uraian,
     pagu:0, nominal, dpp, neto, bulan,
-    ppn, pph22, pph23, totalPajak,
+    ppn, pph21, pph22, pph23, totalPajak,
     totalRealisasi:neto, sisaAnggaran:0, pctRealisasi:0,
     dokumen: dokumenList
   };
@@ -1170,7 +1180,7 @@ async function submitGUP(){
   const payload = {
     action   : 'tambahPengajuan',
     tanggal, program, kodeItem, kodeAkun, penerima, uraian,
-    nominal, dpp, bulan, ppn, pph22, pph23, totalPajak, neto,
+    nominal, dpp, bulan, ppn, pph21, pph22, pph23, totalPajak, neto,
     dokumen  : dokumenList.join(', ')
   };
 
@@ -1188,7 +1198,7 @@ async function submitGUP(){
 
 function resetForm(){
   ['inp-tanggal','inp-program','inp-kodeitem','inp-kodeakun','inp-penerima','inp-uraian',
-   'inp-nominal','inp-bulan','inp-ppn','inp-pph22','inp-pph23']
+   'inp-nominal','inp-bulan','inp-pph21','inp-ppn','inp-pph22','inp-pph23']
     .forEach(id=>{ document.getElementById(id).value=''; });
   document.getElementById('inp-tanggal').value = new Date().toISOString().split('T')[0];
   document.getElementById('inp-kodeakun').value = '';
@@ -1205,7 +1215,7 @@ function resetForm(){
    ============================================================ */
 function renderRiwayat(){
   const body=document.getElementById('riwayatBody');
-  if(!localData.length){body.innerHTML=`<tr><td colspan="14" class="no-data">Belum ada data input.</td></tr>`;return;}
+  if(!localData.length){body.innerHTML=`<tr><td colspan="17" class="no-data">Belum ada data input.</td></tr>`;return;}
   body.innerHTML=localData.slice(0,30).map((r,i)=>{
     const dok = r.dokumen && r.dokumen.length
       ? r.dokumen.map(f=>{
@@ -1223,6 +1233,7 @@ function renderRiwayat(){
       <td style="max-width:180px;font-size:11px;white-space:normal;">${r.uraian}</td>
       <td>Rp ${fmtRp(r.nominal)}</td>
       <td style="color:var(--card-dark);font-weight:800;">Rp ${fmtRp(r.dpp||Math.round((r.nominal||0)/1.12))}</td>
+      <td>${r.pph21?'Rp '+fmtRp(r.pph21):'–'}</td>
       <td>${r.ppn?'Rp '+fmtRp(r.ppn):'–'}</td>
       <td>${r.pph22?'Rp '+fmtRp(r.pph22):'–'}</td>
       <td>${r.pph23?'Rp '+fmtRp(r.pph23):'–'}</td>
@@ -1258,10 +1269,10 @@ function showPage(name,btn){
    (Extensions → Apps Script), lalu Deploy sebagai Web App
    dengan akses "Anyone".
 
-   Struktur kolom sheet "pengajuan":
-   A:Tanggal | B:Program | C:KodeItem | D:KodeAkun | E:Uraian
-   F:Nominal | G:Bulan   | H:PPN      | I:PPh22    | J:PPh23
-   K:TotalPajak | L:Neto | M:Dokumen (URL Drive, dipisah koma)
+   Struktur kolom sheet "pengajuan" (tambah kolom PPh21):
+   A:Tanggal | B:Program  | C:KodeItem | D:KodeAkun | E:Penerima | F:Uraian
+   G:Nominal | H:DPP      | I:Bulan    | J:PPh21    | K:PPN      | L:PPh22
+   M:PPh23   | N:TotalPajak | O:Neto   | P:Dokumen
 
    ──── SALIN KODE INI KE GOOGLE APPS SCRIPT ────
 
@@ -1289,9 +1300,10 @@ function showPage(name,btn){
          const sh = ss.getSheetByName('pengajuan');
          if (!sh) return resp({ status: 'error', message: 'Sheet pengajuan tidak ditemukan' });
          sh.appendRow([
-           data.tanggal,    data.program,  data.kodeItem, data.kodeAkun, data.uraian,
-           data.nominal,    data.bulan,    data.ppn,      data.pph22,    data.pph23,
-           data.totalPajak, data.neto,     data.dokumen
+           data.tanggal,    data.program,    data.kodeItem,  data.kodeAkun,
+           data.penerima,   data.uraian,     data.nominal,   data.dpp,
+           data.bulan,      data.pph21 || 0, data.ppn || 0,  data.pph22 || 0,
+           data.pph23 || 0, data.totalPajak, data.neto,      data.dokumen
          ]);
          return resp({ status: 'ok', message: 'Data berhasil disimpan' });
        }
@@ -1322,13 +1334,18 @@ function showPage(name,btn){
    6. Who has access: Anyone  ← WAJIB, bukan "Anyone with Google account"
    7. Klik Deploy → Authorize → Allow
    8. Copy URL deployment
-   9. Paste URL ke baris SCRIPT_URL di dashboard ini (baris ~1082)
+   9. Paste URL ke baris SCRIPT_URL di dashboard ini
    10. Save file, refresh browser
 
+   ──── PASTIKAN HEADER BARIS 1 SHEET "pengajuan" ────
+   Tanggal | Program | KodeItem | KodeAkun | Penerima | Uraian |
+   Nominal | DPP | Bulan | PPh21 | PPN | PPh22 | PPh23 |
+   TotalPajak | Neto | Dokumen
+
    ──── TIPS JIKA MASIH ERROR ────
-   • Pastikan Deploy ulang setiap kali kode Apps Script diubah
-   • Buka URL Apps Script langsung di browser — harus muncul {"status":"ok","message":"GUP API aktif"}
-   • Jika muncul "Authorization required", klik Allow di popup Google
+   • Deploy ulang setiap kali kode Apps Script diubah
+   • Buka URL Apps Script di browser → harus muncul {"status":"ok","message":"GUP API aktif"}
+   • Jika muncul "Authorization required" → klik Allow
 
    ============================================================ */
 

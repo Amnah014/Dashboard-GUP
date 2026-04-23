@@ -1221,7 +1221,7 @@ function resetForm(){
    ============================================================ */
 function renderRiwayat(){
   if(!localData.length){body.innerHTML=`<tr><td colspan="17" class="no-data">Belum ada data input.</td></tr>`;return;}
-  body.innerHTML=localData.slice(0,50).map((r,i)=>{
+  body.innerHTML=localData.slice(0,30).map((r,i)=>{
     const dok = r.dokumen && r.dokumen.length
       ? r.dokumen.map(f=>{
           const isURL = /^https?:\/\//i.test(f);

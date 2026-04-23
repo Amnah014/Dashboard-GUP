@@ -492,11 +492,17 @@ tbody td{padding:8px 12px;font-size:12px;font-weight:600;color:var(--txt-dark);b
             <th>Total Pajak</th><th>Neto</th><th>Bulan</th><th>Dokumen</th><th>Aksi</th>
           </tr>
         </thead>
-        <tbody id="riwayatBody"></tbody>
+        <tbody id="riwayatBody">
+          <tr><td colspan="10" class="no-data">Memuat data…</td></tr>
+        </tbody>
       </table>
     </div>
+    <div class="pager">
+      <span class="pg-info" id="pgInfo"></span>
+      <button class="pg-btn" id="btnPrev" onclick="changePage(-1)">&#8592; Prev</button>
+      <button class="pg-btn" id="btnNext" onclick="changePage(1)">Next &#8594;</button>
+    </div>
   </div>
-
 </div>
 </div><!-- /input -->
 

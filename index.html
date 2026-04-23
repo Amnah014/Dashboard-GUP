@@ -1220,12 +1220,8 @@ function resetForm(){
    RIWAYAT TABLE
    ============================================================ */
 function renderRiwayat(){
-  const body=document.getElementById('riwayatBody');
-  const total = localData.length;
-  const pages = Math.max(1, Math.ceil(total / PER_PAGE));
-  const start = (currentPage - 1) * PER_PAGE;
   if(!localData.length){body.innerHTML=`<tr><td colspan="17" class="no-data">Belum ada data input.</td></tr>`;return;}
-  body.innerHTML=localData.slice(start, start + PER_PAGE).map((r,i)=>{
+  body.innerHTML=localData.slice(0,50).map((r,i)=>{
     const dok = r.dokumen && r.dokumen.length
       ? r.dokumen.map(f=>{
           const isURL = /^https?:\/\//i.test(f);
@@ -1261,11 +1257,6 @@ function delRec(id){
   localStorage.setItem('gupLocal',JSON.stringify(localData));
   applyFilter();renderRiwayat();
 }
-
-// update pager UI
-document.getElementById('pgInfo').textContent = `Hal ${currentPage}/${pages} (${total} data)`;
-document.getElementById('btnPrev').disabled = currentPage <= 1;
-document.getElementById('btnNext').disabled = currentPage >= pages;
 
 /* ============================================================
    NAV

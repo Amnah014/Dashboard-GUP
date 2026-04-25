@@ -826,7 +826,7 @@ function applyFilter(){
   const program = document.getElementById('filterProgram').value;
 
   // Data transaksi GUP nyata (local + pengajuan sheet)
-  const transaksi = allData.filter(r => r.sumber === 'local' || r.sumber === 'pengajuan');
+  const transaksi = allData.filter(r => r.sumber === 'local' );
   
   // filteredData = transaksi yang cocok filter bulan & program
   filteredData = transaksi.filter(r => {

@@ -416,7 +416,12 @@ tbody td{padding:8px 12px;font-size:12px;font-weight:600;color:var(--txt-dark);b
     <!-- PAJAK BOX -->
     <div class="pajak-section">
       <div class="pajak-title">🧾 Komponen Pajak</div>
-      <div class="fg3">
+      <div class="fg4">
+        <div class="fgroup">
+          <label>Pajak PPh Pasal 21 (Rp)</label>
+          <input type="number" id="inp-pph21" placeholder="0" min="0" oninput="hitungPajak()">
+          <span class="inp-hint">Isi manual — pegawai/honorarium</span>
+        </div>
         <div class="fgroup">
           <label>Pajak PPN (Rp)</label>
           <input type="number" id="inp-ppn" placeholder="0" min="0" oninput="hitungPajak()">
@@ -433,7 +438,7 @@ tbody td{padding:8px 12px;font-size:12px;font-weight:600;color:var(--txt-dark);b
           <span class="inp-hint">2% × DPP — jasa / sewa</span>
         </div>
       </div>
-      <!-- Auto-hitung PPN -->
+      <!-- Auto-hitung (PPN, PPh22, PPh23 saja — PPh21 manual) -->
       <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
         <button type="button" onclick="autoHitungPPN(11)" style="background:var(--card-mid);color:var(--txt-light);border:none;border-radius:4px;padding:5px 12px;font-size:11px;font-weight:800;cursor:pointer;">Auto PPN 11%</button>
         <button type="button" onclick="autoHitungPPN(10)" style="background:var(--card-mid);color:var(--txt-light);border:none;border-radius:4px;padding:5px 12px;font-size:11px;font-weight:800;cursor:pointer;">Auto PPN 10%</button>
@@ -826,7 +831,7 @@ function applyFilter(){
   const program = document.getElementById('filterProgram').value;
 
   // Data transaksi GUP nyata (local + pengajuan sheet)
-  const transaksi = allData.filter(r => r.sumber === 'local' );
+  const transaksi = allData.filter(r => r.sumber === 'local');
   
   // filteredData = transaksi yang cocok filter bulan & program
   filteredData = transaksi.filter(r => {
@@ -872,7 +877,7 @@ function renderStats(bulan, program){
 
   // Semua transaksi (filter program saja, tidak filter bulan untuk total realisasi)
   const semuaTrx = allData.filter(r =>
-    (r.sumber === 'local' ) &&
+    (r.sumber === 'local') &&
     (!program || r.program === program)
   );
 
@@ -892,7 +897,7 @@ function renderStats(bulan, program){
 
   const gupBulanIni = semuaTrx
     .filter(r => (r.bulan||'').trim() === targetBulan)
-    .reduce((s,r) => s + (r.nominal || 0), 0);
+    .reduce((s,r) => s + ( r.nominal || 0), 0);
 
   // Sisa Anggaran
   const sisa = Math.max(0, totalPagu - totalRealisasi);
@@ -911,7 +916,7 @@ function renderAkunList(){
   const map = {};
   filteredData.forEach(r => {
     const k    = r.kodeAkun || '–';
-    const nilai =  r.nominal || 0;
+    const nilai = r.nominal || 0;
     if(nilai > 0) map[k] = (map[k]||0) + nilai;
   });
 
@@ -984,7 +989,7 @@ function renderCharts(){
   // PIE — Realisasi vs Sisa Pagu
   const sheetRows      = allData.filter(r => r.sumber === 'sheet' && (!program || r.program === program));
   const totalPagu      = sheetRows.reduce((s,r) => s + r.pagu, 0);
-  const totalRealisasi = transaksi.reduce((s,r) => s + (r.nominal || 0), 0);
+  const totalRealisasi = transaksi.reduce((s,r) => s + ( r.nominal || 0), 0);
   const sisa           = Math.max(0, totalPagu - totalRealisasi);
 
   const ctx2 = document.getElementById('chartPagu').getContext('2d');
@@ -1082,6 +1087,7 @@ function changePage(d){
 function hitungPajak(){
   const bruto      = parseFloat(document.getElementById('inp-nominal').value)||0;
   const dpp        = Math.round(bruto / 1.12);
+  const pph21        = parseFloat(document.getElementById('inp-pph21').value)||0;
   const ppn        = parseFloat(document.getElementById('inp-ppn').value)||0;
   const pph22      = parseFloat(document.getElementById('inp-pph22').value)||0;
   const pph23      = parseFloat(document.getElementById('inp-pph23').value)||0;
@@ -1102,6 +1108,11 @@ function getDPP(){
 function autoHitungPPN(pct){
   const dpp = getDPP();
   document.getElementById('inp-ppn').value = Math.round(dpp * pct / 100) || '';
+  hitungPajak();
+}
+function autoHitungPPh21(pct){
+  const dpp = getDPP();
+  document.getElementById('inp-pph21').value = Math.round(dpp * pct / 100) || '';
   hitungPajak();
 }
 function autoHitungPPh22(){
@@ -1236,6 +1247,7 @@ async function submitGUP(){
   const uraian   = document.getElementById('inp-uraian').value.trim();
   const nominal  = parseFloat(document.getElementById('inp-nominal').value)||0;
   const bulan    = document.getElementById('inp-bulan').value;
+  const pph21      = parseFloat(document.getElementById('inp-ppn').value)||0;
   const ppn      = parseFloat(document.getElementById('inp-ppn').value)||0;
   const pph22    = parseFloat(document.getElementById('inp-pph22').value)||0;
   const pph23    = parseFloat(document.getElementById('inp-pph23').value)||0;
@@ -1244,7 +1256,7 @@ async function submitGUP(){
     alert('⚠️ Harap lengkapi semua field yang wajib diisi (*).');return;
   }
 
-  const totalPajak = ppn+pph22+pph23;
+  const totalPajak = pph21+ppn+pph22+pph23;
   const neto       = Math.max(0,nominal-totalPajak);
   const dpp        = Math.round(nominal / 1.12);
 
@@ -1260,7 +1272,7 @@ async function submitGUP(){
     id:nextId++, sumber:'local',
     tanggal, program, kodeItem, kodeAkun, penerima, uraian,
     pagu:0, nominal, dpp, neto, bulan,
-    ppn, pph22, pph23, totalPajak,
+    pph21, ppn, pph22, pph23, totalPajak,
     totalRealisasi:neto, sisaAnggaran:0, pctRealisasi:0,
     dokumen: dokumenList
   };

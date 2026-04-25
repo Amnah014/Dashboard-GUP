@@ -709,13 +709,13 @@ async function loadData(){
         kodeAkun    : String(r[3]||'').trim(),
         uraian      : r[4]  || '–',
         pagu        : parseN(r[5]),
-        jan:parseN(r[6]),  feb:parseN(r[7]),  mar:parseN(r[8]),
-        apr:parseN(r[9]),  mei:parseN(r[10]), jun:parseN(r[11]),
-        jul:parseN(r[12]), ags:parseN(r[13]), sep:parseN(r[14]),
-        okt:parseN(r[15]), nov:parseN(r[16]), des:parseN(r[17]),
-        totalRealisasi : parseN(r[18]),
-        sisaAnggaran   : parseN(r[19]),
-        pctRealisasi   : parseN(r[20]),
+        // jan:parseN(r[6]),  feb:parseN(r[7]),  mar:parseN(r[8]),
+        // apr:parseN(r[9]),  mei:parseN(r[10]), jun:parseN(r[11]),
+        // jul:parseN(r[12]), ags:parseN(r[13]), sep:parseN(r[14]),
+        // okt:parseN(r[15]), nov:parseN(r[16]), des:parseN(r[17]),
+        // totalRealisasi : parseN(r[18]),
+        // sisaAnggaran   : parseN(r[19]),
+        //pctRealisasi   : parseN(r[20]),
       }));
 
     populateKodeItemDropdown(fromSheet);
@@ -732,7 +732,7 @@ async function loadData(){
         .filter(r => r && r.length > 4 && r[0] !== null)
         .map((r,i)=>{
           // Dokumen: bisa berisi URL (Google Drive) dipisah koma
-          const dokRaw  = String(r[13]||'').trim();
+          const dokRaw  = String(r[14]||'').trim();
           const dokList = dokRaw ? dokRaw.split(',').map(s=>s.trim()).filter(Boolean) : [];
           return {
             id             : 'P'+i,
@@ -747,13 +747,14 @@ async function loadData(){
             uraian         : String(r[5]||'–').trim(),
             nominal        : parseN(r[6]),
             bulan          : String(r[7]||'').trim(),
-            ppn            : parseN(r[8]),
-            pph22          : parseN(r[9]),
-            pph23          : parseN(r[10]),
-            totalPajak     : parseN(r[11]),
-            neto           : parseN(r[12]),
+            pph21          :  parseN(r[8]),
+            ppn            : parseN(r[9]),
+            pph22          : parseN(r[10]),
+            pph23          : parseN(r[11]),
+            totalPajak     : parseN(r[12]),
+            neto           : parseN(r[13]),
             dokumen        : dokList,
-            totalRealisasi : parseN(r[12]),
+            totalRealisasi : parseN(r[13]),
           };
         })
         .filter(r => r.nominal > 0 || r.neto > 0);
@@ -1087,7 +1088,7 @@ function changePage(d){
 function hitungPajak(){
   const bruto      = parseFloat(document.getElementById('inp-nominal').value)||0;
   const dpp        = Math.round(bruto / 1.12);
-  const pph21        = parseFloat(document.getElementById('inp-pph21').value)||0;
+  const pph21      = parseFloat(document.getElementById('inp-pph21').value)||0;
   const ppn        = parseFloat(document.getElementById('inp-ppn').value)||0;
   const pph22      = parseFloat(document.getElementById('inp-pph22').value)||0;
   const pph23      = parseFloat(document.getElementById('inp-pph23').value)||0;
@@ -1247,7 +1248,7 @@ async function submitGUP(){
   const uraian   = document.getElementById('inp-uraian').value.trim();
   const nominal  = parseFloat(document.getElementById('inp-nominal').value)||0;
   const bulan    = document.getElementById('inp-bulan').value;
-  const pph21      = parseFloat(document.getElementById('inp-ppn').value)||0;
+  const pph21    = parseFloat(document.getElementById('inp-pph21').value)||0;
   const ppn      = parseFloat(document.getElementById('inp-ppn').value)||0;
   const pph22    = parseFloat(document.getElementById('inp-pph22').value)||0;
   const pph23    = parseFloat(document.getElementById('inp-pph23').value)||0;
@@ -1288,7 +1289,7 @@ async function submitGUP(){
   const payload = {
     action   : 'tambahPengajuan',
     tanggal, program, kodeItem, kodeAkun, penerima, uraian,
-    nominal, dpp, bulan, ppn, pph22, pph23, totalPajak, neto,
+    nominal, dpp, bulan, pph21, ppn, pph22, pph23, totalPajak, neto,
     dokumen  : dokumenList.join(', ')
   };
 
@@ -1306,7 +1307,7 @@ async function submitGUP(){
 
 function resetForm(){
   ['inp-tanggal','inp-program','inp-kodeitem','inp-kodeakun','inp-penerima','inp-uraian',
-   'inp-nominal','inp-bulan','inp-ppn','inp-pph22','inp-pph23']
+   'inp-nominal','inp-bulan', 'inp-pph21', 'inp-ppn','inp-pph22','inp-pph23']
     .forEach(id=>{ document.getElementById(id).value=''; });
   document.getElementById('inp-tanggal').value = new Date().toISOString().split('T')[0];
   document.getElementById('inp-kodeakun').value = '';

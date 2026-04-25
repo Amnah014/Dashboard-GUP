@@ -1092,7 +1092,7 @@ function hitungPajak(){
   const ppn        = parseFloat(document.getElementById('inp-ppn').value)||0;
   const pph22      = parseFloat(document.getElementById('inp-pph22').value)||0;
   const pph23      = parseFloat(document.getElementById('inp-pph23').value)||0;
-  const totalPajak = ppn + pph22 + pph23;
+  const totalPajak = pph21 + ppn + pph22 + pph23;
   const neto       = Math.max(0, bruto - totalPajak);
 
   // Update DPP di dalam pajak-total box

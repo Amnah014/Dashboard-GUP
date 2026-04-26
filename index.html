@@ -832,8 +832,8 @@ function applyFilter(){
   const program = document.getElementById('filterProgram').value;
 
   // Data transaksi GUP nyata (local + pengajuan sheet)
-  const transaksi = allData.filter(r => r.sumber === 'local'|| r.sumber === 'pengajuan');
-  
+  const transaksi = allData.filter(r =>  r.sumber === 'pengajuan');
+  //r.sumber === 'local'||
   // filteredData = transaksi yang cocok filter bulan & program
   filteredData = transaksi.filter(r => {
     const matchProg  = !program || r.program === program;
@@ -878,10 +878,8 @@ function renderStats(bulan, program){
 
   // Semua transaksi (filter program saja, tidak filter bulan untuk total realisasi)
   const semuaTrx = allData.filter(r =>
-    (r.sumber === 'local'|| r.sumber === 'pengajuan') &&
-    (!program || r.program === program)
-  );
-
+    ( r.sumber === 'pengajuan') && (!program || r.program === program));
+  //r.sumber === 'local'||
   // Total Realisasi = seluruh neto (semua bulan, program sesuai filter)
   const totalRealisasi = semuaTrx.reduce((s,r) => s + ( r.nominal || 0), 0);
 
@@ -943,10 +941,8 @@ function renderAkunList(){
 function renderCharts(){
   const program   = document.getElementById('filterProgram').value;
   const transaksi = allData.filter(r =>
-    (r.sumber === 'local'|| r.sumber === 'pengajuan' ) &&
-    (!program || r.program === program)
-  );
-
+    (r.sumber === 'pengajuan' ) && (!program || r.program === program));
+  //r.sumber === 'local'|| 
   // Monthly totals dari transaksi nyata
   const monthly = Array(12).fill(0);
   transaksi.forEach(r => {

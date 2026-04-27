@@ -279,9 +279,9 @@ tbody td{padding:8px 12px;font-size:12px;font-weight:600;color:var(--txt-dark);b
       <div class="dash-title"><span>Monitoring</span><span>GUP</span></div>
       <div class="filter-row" style="margin-top:14px;margin-bottom:0;">
         <span class="filter-lbl">Filter Bulan</span>
-        <input type="date" id="filterStart" onchange="applyFilter()">
+        <!-- <input type="date" id="filterStart" onchange="applyFilter()">
         <span style="font-weight:800;">s/d</span>
-        <input type="date" id="filterEnd" onchange="applyFilter()">
+        <input type="date" id="filterEnd" onchange="applyFilter()"> -->
         <select class="fsel" id="filterBulan" onchange="applyFilter()">
           <option value="0">Semua Bulan</option>
           <option value="1">Januari</option><option value="2">Februari</option>
@@ -952,9 +952,9 @@ function renderStats(bulan, program){
   const elLabel = document.getElementById('lblGupBulan');
   if(elLabel) elLabel.textContent = `GUP ${targetBulan}`;
 
-  const gupBulanIni = semuaTrx
-    .filter(r => (r.bulan||'').trim() === targetBulan)
-    .reduce((s,r) => s + ( r.nominal || 0), 0);
+  // const gupBulanIni = semuaTrx
+  //   .filter(r => (r.bulan||'').trim() === targetBulan)
+  //   .reduce((s,r) => s + ( r.nominal || 0), 0);
   const start = document.getElementById('filterStart').value;
   const end   = document.getElementById('filterEnd').value;
 

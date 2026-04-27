@@ -1543,6 +1543,17 @@ function downloadExcel(){
   const bulan   = parseInt(document.getElementById('dl-bulan').value)||0;
   const program = document.getElementById('dl-program').value;
 
+  const data = allData.filter(r => {
+  const sumberOK = r.sumber === 'local' || r.sumber === 'pengajuan';
+
+  const matchProg  = !program || r.program === program;
+  const matchBulan = bulan === 0
+    ? true
+    : BULAN_NAMES.indexOf((r.bulan||'').trim()) + 1 === bulan;
+
+  return sumberOK && matchProg && matchBulan;
+});
+  
   if(!data.length){
     alert('⚠️ Tidak ada data untuk filter yang dipilih.');
     return;

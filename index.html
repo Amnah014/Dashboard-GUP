@@ -918,17 +918,17 @@ function renderStats(bulan, program){
   // GUP Bulan Ini:
   // — jika filter bulan dipilih → tampilkan total bulan tersebut
   // — jika "Semua Bulan" → tampilkan bulan kalender sekarang
-  const targetBulan = bulan > 0
-    ? BULAN_NAMES[bulan - 1]
-    : BULAN_NAMES[new Date().getMonth()];
+  // const targetBulan = bulan > 0
+  //   ? BULAN_NAMES[bulan - 1]
+  //   : BULAN_NAMES[new Date().getMonth()];
 
-  // Update label card agar tahu bulan mana yang ditampilkan
-  const elLabel = document.getElementById('lblGupBulan');
-  if(elLabel) elLabel.textContent = `GUP ${targetBulan}`;
+  // // Update label card agar tahu bulan mana yang ditampilkan
+  // const elLabel = document.getElementById('lblGupBulan');
+  // if(elLabel) elLabel.textContent = `GUP ${targetBulan}`;
 
-  const gupBulanIni = semuaTrx
-    .filter(r => (r.bulan||'').trim() === targetBulan)
-    .reduce((s,r) => s + ( r.nominal || 0), 0);
+  // const gupBulanIni = semuaTrx
+  //   .filter(r => (r.bulan||'').trim() === targetBulan)
+  //   .reduce((s,r) => s + ( r.nominal || 0), 0);
   const start = document.getElementById('filterStart').value;
   const end   = document.getElementById('filterEnd').value;
 

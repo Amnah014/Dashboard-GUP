@@ -1544,7 +1544,7 @@ function downloadExcel(){
   const program = document.getElementById('dl-program').value;
 
   const data = allData.filter(r => {
-  const sumberOK = r.sumber === 'local' || r.sumber === 'pengajuan';
+  const sumberOK = r.sumber === 'pengajuan';
 
   const matchProg  = !program || r.program === program;
   const matchBulan = bulan === 0

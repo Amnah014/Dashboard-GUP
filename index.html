@@ -1473,13 +1473,15 @@ function showPage(name,btn){
    ============================================================ */
 
 /* ============================================================
-   DOWNLOAD EXCEL
+   DOWNLOAD EXCEL — data dari sheet pengajuan (bukan localStorage)
    ============================================================ */
 function getFilteredExcelData(){
   const bulan   = parseInt(document.getElementById('dl-bulan').value)||0;
   const program = document.getElementById('dl-program').value;
 
-  return localData.filter(r => {
+  // Sumber: sheet pengajuan saja
+  return allData.filter(r => {
+    if(r.sumber !== 'pengajuan') return false;
     const matchProg  = !program || r.program === program;
     const matchBulan = bulan === 0
       ? true
@@ -1492,32 +1494,25 @@ function previewExcel(){
   const data    = getFilteredExcelData();
   const bulan   = parseInt(document.getElementById('dl-bulan').value)||0;
   const program = document.getElementById('dl-program').value;
+  const blnLbl  = bulan > 0 ? BULAN_NAMES[bulan-1] : 'Semua Bulan';
+  const prgLbl  = program || 'Semua Program';
 
-  const body    = document.getElementById('dlPreviewBody');
-  const wrap    = document.getElementById('dlPreviewWrap');
-  const summary = document.getElementById('dlSummary');
-  const head    = document.getElementById('dlPreviewHead');
+  document.getElementById('dlPreviewHead').textContent =
+    `Preview Sheet Pengajuan — ${blnLbl} · ${prgLbl} (${data.length} data)`;
 
-  // Update preview head label
-  const blnLabel = bulan > 0 ? BULAN_NAMES[bulan-1] : 'Semua Bulan';
-  const prgLabel = program || 'Semua Program';
-  head.textContent = `Preview — ${blnLabel} · ${prgLabel} (${data.length} data)`;
-
-  // Summary
-  const totNominal = data.reduce((s,r)=>s+(r.nominal||0), 0);
-  const totNeto    = data.reduce((s,r)=>s+(r.neto||r.nominal||0), 0);
-  document.getElementById('dlJumlah').textContent  = data.length + ' baris';
+  const totNominal = data.reduce((s,r)=>s+(r.nominal||0),0);
+  const totNeto    = data.reduce((s,r)=>s+(r.neto||r.nominal||0),0);
+  document.getElementById('dlJumlah').textContent  = data.length+' baris';
   document.getElementById('dlNominal').textContent = 'Rp '+fmtRp(totNominal);
   document.getElementById('dlNeto').textContent    = 'Rp '+fmtRp(totNeto);
+  document.getElementById('dlSummary').style.display  = 'grid';
+  document.getElementById('dlPreviewWrap').style.display = 'block';
 
-  summary.style.display = 'grid';
-  wrap.style.display    = 'block';
-
+  const body = document.getElementById('dlPreviewBody');
   if(!data.length){
-    body.innerHTML = `<tr><td colspan="16" class="no-data">Tidak ada data untuk filter ini.</td></tr>`;
+    body.innerHTML=`<tr><td colspan="16" class="no-data">Tidak ada data untuk filter ini.</td></tr>`;
     return;
   }
-
   body.innerHTML = data.map((r,i)=>`<tr>
     <td>${i+1}</td>
     <td style="white-space:nowrap;">${r.tanggal||'–'}</td>
@@ -1539,49 +1534,35 @@ function previewExcel(){
 }
 
 function downloadExcel(){
-  const data    = getFilteredExcelData();
-  const bulan   = parseInt(document.getElementById('dl-bulan').value)||0;
-  const program = document.getElementById('dl-program').value;
+  const data  = getFilteredExcelData();
+  const bulan = parseInt(document.getElementById('dl-bulan').value)||0;
+  const prog  = document.getElementById('dl-program').value;
 
-  if(!data.length){
-    alert('⚠️ Tidak ada data untuk filter yang dipilih.');
-    return;
-  }
+  if(!data.length){ alert('⚠️ Tidak ada data untuk filter yang dipilih.'); return; }
 
-  const blnLabel = bulan > 0 ? BULAN_NAMES[bulan-1] : 'Semua_Bulan';
-  const prgLabel = program || 'Semua_Program';
-  const fileName = `GUP_KPU_KolTim_${blnLabel}_${prgLabel}_${new Date().toLocaleDateString('id-ID').replace(/\//g,'-')}.xlsx`;
+  const blnLbl  = bulan > 0 ? BULAN_NAMES[bulan-1] : 'Semua_Bulan';
+  const prgLbl  = prog || 'Semua_Program';
+  const tgl     = new Date().toLocaleDateString('id-ID').replace(/\//g,'-');
+  const fileName= `GUP_KPU_KolTim_${blnLbl}_${prgLbl}_${tgl}.xlsx`;
 
-  // ── Baris header ──
   const headers = [
-    'No','Tanggal','Program','Kode Item','Penerima','Uraian',
+    'No','Tanggal','Program','Kode Item','Kode Akun','Penerima','Uraian',
     'Nominal Bruto (Rp)','DPP (Rp)','PPh 21 (Rp)','PPN (Rp)','PPh 22 (Rp)','PPh 23 (Rp)',
-    'Total Pajak (Rp)','Neto (Rp)','Bulan','Kode Akun','Kode Item (Akun)'
+    'Total Pajak (Rp)','Neto (Rp)','Bulan'
   ];
 
-  // ── Baris data ──
-  const rows = data.map((r,i) => [
-    i+1,
-    r.tanggal||'',
-    r.program||'',
-    r.kodeItem||'',
-    r.penerima||'',
-    r.uraian||'',
+  const rows = data.map((r,i)=>[
+    i+1, r.tanggal||'', r.program||'', r.kodeItem||'', r.kodeAkun||'',
+    r.penerima||'', r.uraian||'',
     r.nominal||0,
     r.dpp||Math.round((r.nominal||0)/1.12),
-    r.pph21||0,
-    r.ppn||0,
-    r.pph22||0,
-    r.pph23||0,
-    r.totalPajak||0,
-    r.neto||r.nominal||0,
-    r.bulan||'',
-    r.kodeAkun||'',
+    r.pph21||0, r.ppn||0, r.pph22||0, r.pph23||0,
+    r.totalPajak||0, r.neto||r.nominal||0,
+    r.bulan||''
   ]);
 
-  // ── Baris total ──
   const totRow = [
-    'TOTAL','','','','','',
+    'TOTAL','','','','','','',
     data.reduce((s,r)=>s+(r.nominal||0),0),
     data.reduce((s,r)=>s+(r.dpp||Math.round((r.nominal||0)/1.12)),0),
     data.reduce((s,r)=>s+(r.pph21||0),0),
@@ -1590,53 +1571,43 @@ function downloadExcel(){
     data.reduce((s,r)=>s+(r.pph23||0),0),
     data.reduce((s,r)=>s+(r.totalPajak||0),0),
     data.reduce((s,r)=>s+(r.neto||r.nominal||0),0),
-    '','',
+    ''
   ];
 
-  // ── Buat workbook ──
-  const wb = XLSX.utils.book_new();
-  const wsData = [headers, ...rows, [], totRow];
-  const ws = XLSX.utils.aoa_to_sheet(wsData);
-
-  // Lebar kolom
-  ws['!cols'] = [
-    {wch:5},{wch:12},{wch:8},{wch:10},{wch:22},{wch:40},
-    {wch:18},{wch:18},{wch:14},{wch:14},{wch:14},{wch:14},
-    {wch:16},{wch:18},{wch:12},{wch:10},{wch:10}
+  const wb   = XLSX.utils.book_new();
+  const ws   = XLSX.utils.aoa_to_sheet([headers, ...rows, [], totRow]);
+  ws['!cols']= [
+    {wch:5},{wch:12},{wch:8},{wch:10},{wch:10},{wch:22},{wch:38},
+    {wch:18},{wch:18},{wch:14},{wch:14},{wch:14},{wch:14},{wch:16},{wch:18},{wch:12}
   ];
-
-  // Style header (freeze baris 1)
   ws['!freeze'] = {xSplit:0, ySplit:1};
+  XLSX.utils.book_append_sheet(wb, ws, `GUP ${blnLbl}`);
 
-  XLSX.utils.book_append_sheet(wb, ws, `GUP ${blnLabel}`);
-
-  // ── Sheet Ringkasan ──
-  const totNominal = data.reduce((s,r)=>s+(r.nominal||0),0);
-  const totNeto    = data.reduce((s,r)=>s+(r.neto||r.nominal||0),0);
-  const totPajak   = data.reduce((s,r)=>s+(r.totalPajak||0),0);
-  const ringkasan  = [
-    ['RINGKASAN GUP - KPU KAB. KOLAKA TIMUR'],
+  // Sheet Ringkasan
+  const ringkasan = [
+    ['RINGKASAN GUP — KPU KAB. KOLAKA TIMUR'],
     [],
-    ['Filter Bulan',  bulan>0?BULAN_NAMES[bulan-1]:'Semua Bulan'],
-    ['Filter Program',prgLabel],
+    ['Filter Bulan',   bulan>0?BULAN_NAMES[bulan-1]:'Semua Bulan'],
+    ['Filter Program', prgLbl],
     ['Tanggal Download', new Date().toLocaleDateString('id-ID')],
+    ['Sumber Data',    'Google Sheets (sheet: pengajuan)'],
     [],
     ['Jumlah Data',   data.length],
-    ['Total Nominal', totNominal],
-    ['Total Pajak',   totPajak],
-    ['Total Neto',    totNeto],
+    ['Total Nominal', data.reduce((s,r)=>s+(r.nominal||0),0)],
+    ['Total Pajak',   data.reduce((s,r)=>s+(r.totalPajak||0),0)],
+    ['Total Neto',    data.reduce((s,r)=>s+(r.neto||r.nominal||0),0)],
     [],
-    ['Kode Akun', 'Total Nominal'],
+    ['Kode Akun','Total Nominal'],
     ...Object.entries(
-      data.reduce((m,r)=>{ m[r.kodeAkun||'–']=(m[r.kodeAkun||'–']||0)+(r.nominal||0); return m; },{})
+      data.reduce((m,r)=>{ const k=r.kodeAkun||'–'; m[k]=(m[k]||0)+(r.nominal||0); return m; },{})
     ).sort((a,b)=>b[1]-a[1])
   ];
   const wsR = XLSX.utils.aoa_to_sheet(ringkasan);
-  wsR['!cols'] = [{wch:24},{wch:20}];
+  wsR['!cols'] = [{wch:26},{wch:20}];
   XLSX.utils.book_append_sheet(wb, wsR, 'Ringkasan');
 
   XLSX.writeFile(wb, fileName);
-  previewExcel(); // update preview setelah download
+  previewExcel();
 }
 
 document.addEventListener('DOMContentLoaded',()=>{

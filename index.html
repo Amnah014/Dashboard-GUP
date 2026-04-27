@@ -667,6 +667,12 @@ let nextId = localData.length ? Math.max(...localData.map(d=>d.id),0)+1 : 1;
 let riwPage = 1;
 const RIW_PER = 10;
 
+function parseDateLocal(str){
+  if(!str) return null;
+  const [y,m,d] = str.split('-').map(Number);
+  return new Date(y, m-1, d);
+}
+  
 /* ============================================================
    HELPERS
    ============================================================ */
@@ -880,8 +886,10 @@ function applyFilter(){
   const start = document.getElementById('filterStart').value;
 const end   = document.getElementById('filterEnd').value;
 
-const startDate = start ?  : null;
-const endDate   = end   ? new Date(end)   : null;
+//const startDate = start ?  : null;
+const startDate = start ? parseDateLocal(start) : null;
+const endDate = end ? parseDateLocal(end) : null;
+if(endDate) endDate.setHours(23,59,59,999);
 
 const transaksi = allData.filter(r => {
   if(r.sumber !== 'pengajuan') return false;

@@ -643,9 +643,9 @@ const PENGAJUAN_GID  = '1769477807';     // Sheet: pengajuan (rincian GUP)
 // Januari(6) Februari(7) Maret(8) April(9) Mei(10) Juni(11)
 // Juli(12) Agustus(13) September(14) Oktober(15) November(16) Desember(17)
 // Total Realisasi(18) Sisa Anggaran(19) % Realisasi(20)
-const BULAN_NAMES = ['Januari','Februari','Maret','April','Mei','Juni',
+_NAMES = ['Januari','Februari','Maret','April','Mei','Juni',
                      'Juli','Agustus','September','Oktober','November','Desember'];
-const BULAN_COL   = {
+_COL   = {
   'Januari':6,'Februari':7,'Maret':8,'April':9,'Mei':10,'Juni':11,
   'Juli':12,'Agustus':13,'September':14,'Oktober':15,'November':16,'Desember':17
 };
@@ -866,7 +866,7 @@ document.addEventListener('DOMContentLoaded',()=>{
    — local + pengajuan          = transaksi GUP yang sudah dibayar
    ============================================================ */
 function applyFilter(){
-  const bulan   = parseInt(document.getElementById('filterBulan').value)||0;
+  //const bulan   = parseInt(document.getElementById('filterBulan').value)||0;
   const program = document.getElementById('filterProgram').value;
 
   // Data transaksi GUP nyata (local + pengajuan sheet)
@@ -896,7 +896,7 @@ const transaksi = allData.filter(r => {
 });
 
   currentPage = 1;
-  renderStats(bulan, program);
+  renderStats( program);
   renderAkunList();
   renderCharts();
   renderTable();

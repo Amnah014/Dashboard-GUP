@@ -256,6 +256,9 @@ tbody td{padding:8px 12px;font-size:12px;font-weight:600;color:var(--txt-dark);b
       <div class="dash-title"><span>Monitoring</span><span>GUP</span></div>
       <div class="filter-row" style="margin-top:14px;margin-bottom:0;">
         <span class="filter-lbl">Filter Bulan</span>
+        <input type="date" id="filterStart" onchange="applyFilter()">
+        <span style="font-weight:800;">s/d</span>
+        <input type="date" id="filterEnd" onchange="applyFilter()">
         <select class="fsel" id="filterBulan" onchange="applyFilter()">
           <option value="0">Semua Bulan</option>
           <option value="1">Januari</option><option value="2">Februari</option>
@@ -644,6 +647,18 @@ const RIW_PER = 10;
    ============================================================ */
 const fmtRp = n => Math.round(n||0).toLocaleString('id-ID');
 const parseN = v => {
+  function parseTanggal(t){
+  if(!t) return null;
+
+  if(t.includes('-')) return new Date(t); // dari input
+
+  if(t.includes('/')){
+    const [d,m,y] = t.split('/');
+    return new Date(y, m-1, d); // dari sheet
+  }
+
+  return new Date(t);
+}
   if(v===null||v===undefined||v==='') return 0;
   if(typeof v==='number') return v;
   return parseFloat(String(v).replace(/[^\d.-]/g,''))||0;
@@ -832,7 +847,24 @@ function applyFilter(){
   const program = document.getElementById('filterProgram').value;
 
   // Data transaksi GUP nyata (local + pengajuan sheet)
-  const transaksi = allData.filter(r =>  r.sumber === 'pengajuan');
+  //const transaksi = allData.filter(r =>  r.sumber === 'pengajuan');
+  const start = document.getElementById('filterStart').value;
+const end   = document.getElementById('filterEnd').value;
+
+const startDate = start ? new Date(start) : null;
+const endDate   = end   ? new Date(end)   : null;
+
+const transaksi = allData.filter(r => {
+  if(r.sumber !== 'pengajuan') return false;
+
+  const tgl = parseTanggal(r.tanggal);
+  if(!tgl) return false;
+
+  const matchStart = !startDate || tgl >= startDate;
+  const matchEnd   = !endDate   || tgl <= endDate;
+
+  return matchStart && matchEnd;
+});
   //r.sumber === 'local'||
   // filteredData = transaksi yang cocok filter bulan & program
   filteredData = transaksi.filter(r => {
@@ -897,6 +929,23 @@ function renderStats(bulan, program){
   const gupBulanIni = semuaTrx
     .filter(r => (r.bulan||'').trim() === targetBulan)
     .reduce((s,r) => s + ( r.nominal || 0), 0);
+  const start = document.getElementById('filterStart').value;
+const end   = document.getElementById('filterEnd').value;
+
+const startDate = start ? new Date(start) : null;
+const endDate   = end   ? new Date(end)   : null;
+
+// const gupBulanIni = semuaTrx
+//   .filter(r => {
+//     const tgl = parseTanggal(r.tanggal);
+//     if(!tgl) return false;
+
+    const matchStart = !startDate || tgl >= startDate;
+    const matchEnd   = !endDate   || tgl <= endDate;
+
+    return matchStart && matchEnd;
+  })
+  .reduce((s,r) => s + (r.nominal || 0), 0);
 
   // Sisa Anggaran
   const sisa = Math.max(0, totalPagu - totalRealisasi);

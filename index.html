@@ -674,7 +674,10 @@ const fmtRp = n => Math.round(n||0).toLocaleString('id-ID');
   function parseTanggal(t){
   if(!t) return null;
 
-  if(t.includes('-')) return new Date(t); // dari input
+  if(t.includes('-')){
+    const [y,m,d] = t.split('-').map(Number);
+    return new Date(y, m-1, d);
+  }
 
   if(t.includes('/')){
     const [d,m,y] = t.split('/');
@@ -683,6 +686,7 @@ const fmtRp = n => Math.round(n||0).toLocaleString('id-ID');
 
   return new Date(t);
 }
+  
 const parseN = v => {
   if(v===null||v===undefined||v==='') return 0;
   if(typeof v==='number') return v;
@@ -876,7 +880,7 @@ function applyFilter(){
   const start = document.getElementById('filterStart').value;
 const end   = document.getElementById('filterEnd').value;
 
-const startDate = start ? new Date(start) : null;
+const startDate = start ?  : null;
 const endDate   = end   ? new Date(end)   : null;
 
 const transaksi = allData.filter(r => {
@@ -957,8 +961,9 @@ function renderStats(bulan, program){
   const start = document.getElementById('filterStart').value;
   const end   = document.getElementById('filterEnd').value;
 
-const startDate = start ? new Date(start) : null;
-const endDate   = end   ? new Date(end)   : null;
+const startDate = parseDateLocal(start);
+const endDate   = parseDateLocal(end);
+  if(endDate) endDate.setHours(23,59,59,999);
 
 const gupBulanIni = semuaTrx
   .filter(r => {

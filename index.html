@@ -55,6 +55,29 @@ button,select,input,textarea{font-family:'Nunito',sans-serif;}
 .btn-refresh{background:var(--card-mid);color:var(--txt-light);border:none;border-radius:4px;padding:7px 16px;font-size:12px;font-weight:800;cursor:pointer;transition:background .2s;}
 .btn-refresh:hover{background:var(--card-dark);}
 
+.date-filter {
+  appearance: none;
+  -webkit-appearance: none;
+  background: var(--card-mid);
+  color: var(--txt-light);
+  font-weight: 800;
+  padding-right: 12px;
+  min-width: 150px;
+  text-align: center;
+}
+
+/* icon kalender biar matching */
+.date-filter::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
+}
+
+/* hilangkan border default */
+.date-filter {
+  border: none;
+}
+  
+
 /* logo */
 .logo-box{text-align:center;}
 .logo-ring{
@@ -259,7 +282,7 @@ tbody td{padding:8px 12px;font-size:12px;font-weight:600;color:var(--txt-dark);b
         <input type="date" id="filterStart" onchange="applyFilter()">
         <span style="font-weight:800;">s/d</span>
         <input type="date" id="filterEnd" onchange="applyFilter()">
-        <select class="fsel" id="filterBulan" onchange="applyFilter()">
+        <!-- <select class="fsel" id="filterBulan" onchange="applyFilter()">
           <option value="0">Semua Bulan</option>
           <option value="1">Januari</option><option value="2">Februari</option>
           <option value="3">Maret</option><option value="4">April</option>
@@ -267,7 +290,7 @@ tbody td{padding:8px 12px;font-size:12px;font-weight:600;color:var(--txt-dark);b
           <option value="7">Juli</option><option value="8">Agustus</option>
           <option value="9">September</option><option value="10">Oktober</option>
           <option value="11">November</option><option value="12">Desember</option>
-        </select>
+        </select> -->
         <select class="fsel" id="filterProgram" onchange="applyFilter()">
           <option value="">Semua Program</option>
           <option value="CQ">CQ</option>
@@ -843,7 +866,7 @@ document.addEventListener('DOMContentLoaded',()=>{
    — local + pengajuan          = transaksi GUP yang sudah dibayar
    ============================================================ */
 function applyFilter(){
-  const bulan   = parseInt(document.getElementById('filterBulan').value)||0;
+  //const bulan   = parseInt(document.getElementById('filterBulan').value)||0;
   const program = document.getElementById('filterProgram').value;
 
   // Data transaksi GUP nyata (local + pengajuan sheet)
@@ -868,12 +891,9 @@ const transaksi = allData.filter(r => {
   //r.sumber === 'local'||
   // filteredData = transaksi yang cocok filter bulan & program
   filteredData = transaksi.filter(r => {
-    const matchProg  = !program || r.program === program;
-    const matchBulan = bulan === 0
-      ? true
-      : BULAN_NAMES.indexOf((r.bulan||'').trim()) + 1 === bulan;
-    return matchProg && matchBulan;
-  });
+  const matchProg  = !program || r.program === program;
+  return matchProg;
+});
 
   currentPage = 1;
   renderStats(bulan, program);
@@ -918,7 +938,7 @@ function renderStats(bulan, program){
   // GUP Bulan Ini:
   // — jika filter bulan dipilih → tampilkan total bulan tersebut
   // — jika "Semua Bulan" → tampilkan bulan kalender sekarang
-  // const targetBulan = bulan > 0
+  // const Bulan = bulan > 0
   //   ? BULAN_NAMES[bulan - 1]
   //   : BULAN_NAMES[new Date().getMonth()];
 

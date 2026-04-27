@@ -55,6 +55,29 @@ button,select,input,textarea{font-family:'Nunito',sans-serif;}
 .btn-refresh{background:var(--card-mid);color:var(--txt-light);border:none;border-radius:4px;padding:7px 16px;font-size:12px;font-weight:800;cursor:pointer;transition:background .2s;}
 .btn-refresh:hover{background:var(--card-dark);}
 
+  .date-filter {
+  appearance: none;
+  -webkit-appearance: none;
+  background: var(--card-mid);
+  color: var(--txt-light);
+  font-weight: 800;
+  padding-right: 12px;
+  min-width: 150px;
+  text-align: center;
+}
+}
+
+/* icon kalender biar matching */
+.date-filter::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
+}
+
+/* hilangkan border default */
+.date-filter {
+  border: none;
+}
+
 /* logo */
 .logo-box{text-align:center;}
 .logo-ring{
@@ -268,6 +291,9 @@ tbody td{padding:8px 12px;font-size:12px;font-weight:600;color:var(--txt-dark);b
           <option value="9">September</option><option value="10">Oktober</option>
           <option value="11">November</option><option value="12">Desember</option>
         </select>
+        <input type="date" id="filterStart" class="fsel date-filter" onchange="applyFilter()">
+        <span style="font-weight:800;">s/d</span>
+        <input type="date" id="filterEnd" class="fsel date-filter" onchange="applyFilter()">
         <select class="fsel" id="filterProgram" onchange="applyFilter()">
           <option value="">Semua Program</option>
           <option value="CQ">CQ</option>

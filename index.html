@@ -349,7 +349,12 @@ tbody td{padding:8px 12px;font-size:12px;font-weight:600;color:var(--txt-dark);b
                 <th>Tanggal</th>
                 <th>Penerima</th>
                 <th>Uraian</th>
-                <th>Nominal</th>
+                <th>Nominal Bersih</th>
+                <th>PPh21</th>
+                <th>PPN</th>
+                <th>PPh 22</th>
+                <th>PPh 23</th>
+                <th>Total Pajak</th>
                 <th>Kode Akun</th>
                 <th>Kode Item</th>
                 <th>Bukti Dokumen</th>
@@ -797,7 +802,7 @@ async function loadData(){
             uraian         : String(r[5]||'–').trim(),
             nominal        : parseN(r[6]),
             bulan          : String(r[7]||'').trim(),
-            pph21          :  parseN(r[8]),
+            pph21          : parseN(r[8]),
             ppn            : parseN(r[9]),
             pph22          : parseN(r[10]),
             pph23          : parseN(r[11]),

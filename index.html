@@ -349,12 +349,13 @@ tbody td{padding:8px 12px;font-size:12px;font-weight:600;color:var(--txt-dark);b
                 <th>Tanggal</th>
                 <th>Penerima</th>
                 <th>Uraian</th>
-                <th>Nominal Bersih</th>
+                <th>Nominal Bruto</th>
                 <th>PPh21</th>
                 <th>PPN</th>
                 <th>PPh 22</th>
                 <th>PPh 23</th>
                 <th>Total Pajak</th>
+                <th>Nominal Bersih</th>
                 <th>Kode Akun</th>
                 <th>Kode Item</th>
                 <th>Bukti Dokumen</th>
@@ -1151,7 +1152,13 @@ function renderTable(){
         <td style="white-space:nowrap;">${r.tanggal || '–'}</td>
         <td style="white-space:nowrap;font-weight:800;color:var(--card-dark);">${r.penerima || '–'}</td>
         <td style="white-space:normal;max-width:260px;font-size:12px;">${r.uraian || '–'}</td>
-        <td style="white-space:nowrap;"><strong>Rp ${fmtRp(r.neto || r.nominal || r.totalRealisasi || 0)}</strong></td>
+        <td style="white-space:nowrap;">Rp ${fmtRp(r.nominal)}</td>
+        <td style="white-space:nowrap;">${r.pph21?'Rp '+fmtRp(r.pph21):'–'}</td>
+        <td style="white-space:nowrap;">${r.ppn?'Rp '+fmtRp(r.ppn):'–'}</td>
+        <td style="white-space:nowrap;">${r.pph22?'Rp '+fmtRp(r.pph22):'–'}</td>
+        <td style="white-space:nowrap;">${r.pph23?'Rp '+fmtRp(r.pph23):'–'}</td>
+        <td style="white-space:nowrap;"><strong>Rp ${fmtRp(r.totalPajak||0)}</strong></td>
+        <td style="white-space:nowrap;"><strong>Rp ${fmtRp(r.neto||r.nominal)}</strong></td>
         <td>${r.kodeAkun || '–'}</td>
         <td>${r.kodeItem || '–'}</td>
         <td style="min-width:120px;">${dokHtml}</td>
